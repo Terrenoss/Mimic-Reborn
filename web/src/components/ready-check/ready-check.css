@@ -1,0 +1,38 @@
+.ready-check {
+    z-index: 70;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 24px;
+}
+
+.ready-check-title {
+    color: var(--gold-bright);
+    font-size: 1.8rem;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.ready-check-progress {
+    width: 80%;
+    max-width: 320px;
+    height: 6px;
+    background: var(--blue-panel);
+    border: 1px solid var(--gold-dark);
+}
+
+.ready-check-progress-fill {
+    height: 100%;
+    background: var(--blue-accent);
+    transition: width 1s linear;
+}
+
+.ready-check-buttons {
+    display: flex;
+    gap: 16px;
+}
+
+.ready-check-buttons .lcu-button {
+    min-width: 130px;
+}

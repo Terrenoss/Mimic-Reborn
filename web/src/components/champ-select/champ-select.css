@@ -1,0 +1,448 @@
+.champ-select {
+    z-index: 20;
+    background-size: cover;
+    background-position: center;
+}
+
+/* Timer + bans */
+.cs-timer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 0 8px;
+    background: rgba(1, 10, 19, 0.75);
+}
+
+.cs-timer-count {
+    color: var(--gold-bright);
+    font-size: 1.6rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.cs-timer-phase {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.cs-bans {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 6px 12px 0;
+}
+
+.ban-row {
+    display: flex;
+    gap: 4px;
+}
+
+.ban-icon {
+    width: 26px;
+    height: 26px;
+    filter: grayscale(1);
+    border: 1px solid var(--red);
+}
+
+.ban-icon.pending {
+    opacity: 0.35;
+    border-color: var(--gold-dark);
+}
+
+/* Members list */
+.cs-members {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+}
+
+.cs-member {
+    position: relative;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--gold-dark);
+    background: var(--blue-panel);
+    overflow: hidden;
+}
+
+.cs-member.local {
+    border-color: var(--gold);
+}
+
+.cs-member.acting {
+    border-color: var(--blue-accent);
+    animation: pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from {
+        box-shadow: 0 0 2px var(--blue-accent);
+    }
+    to {
+        box-shadow: 0 0 12px var(--blue-accent);
+    }
+}
+
+.cs-member-splash {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+}
+
+.cs-member.intent .cs-member-splash {
+    filter: grayscale(0.8);
+    opacity: 0.7;
+}
+
+.cs-member-shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(1, 10, 19, 0.9), rgba(1, 10, 19, 0.25));
+}
+
+.cs-member-info {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 8px 12px;
+    gap: 2px;
+    flex: 1;
+}
+
+.cs-member-name {
+    color: var(--text-bright);
+    font-size: 0.95rem;
+}
+
+.cs-member-sub {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.cs-member-spells {
+    position: relative;
+    display: flex;
+    gap: 4px;
+    padding-right: 10px;
+}
+
+.cs-member-spells img {
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--gold-dark);
+}
+
+.cs-members-divider {
+    text-align: center;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--red);
+    padding: 6px 0 2px;
+}
+
+/* Bottom bar */
+.cs-settings {
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+    background: rgba(1, 10, 19, 0.85);
+    border-top: 1px solid var(--gold-dark);
+}
+
+.cs-settings-button {
+    flex: 1;
+    background: var(--blue-panel);
+    border: 1px solid var(--gold-dark);
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 4px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.cs-settings-button:disabled {
+    opacity: 0.4;
+}
+
+.cs-settings-button img {
+    width: 22px;
+    height: 22px;
+}
+
+/* Bench */
+.cs-bench {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    background: rgba(1, 10, 19, 0.85);
+    border-top: 1px solid var(--gold-dark);
+}
+
+.cs-bench-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.cs-bench-list {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+}
+
+.cs-bench-champion {
+    background: none;
+    border: 1px solid var(--gold-dark);
+    padding: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.cs-bench-champion img {
+    width: 42px;
+    height: 42px;
+    display: block;
+}
+
+/* Champion picker + shared overlay grids */
+.champion-picker,
+.summoner-picker,
+.skin-picker,
+.rune-editor {
+    z-index: 50;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.champion-picker-search {
+    background: var(--blue-panel);
+    border: 1px solid var(--gold-dark);
+    color: var(--text-bright);
+    padding: 12px;
+    font-size: 1rem;
+    margin: 12px 0;
+    outline: none;
+}
+
+.champion-picker-grid,
+.summoner-picker-grid {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 8px;
+    align-content: start;
+}
+
+.champion-cell {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    cursor: pointer;
+    font-size: 0.65rem;
+}
+
+.champion-cell img {
+    width: 56px;
+    height: 56px;
+}
+
+.champion-cell.selected {
+    border-color: var(--gold);
+    color: var(--gold-bright);
+}
+
+.champion-picker-actions {
+    display: flex;
+    gap: 10px;
+    padding: 12px 0;
+}
+
+.champion-picker-actions .lcu-button {
+    flex: 1;
+}
+
+/* Summoner picker */
+.summoner-picker-slots {
+    display: flex;
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.summoner-slot {
+    flex: 1;
+    background: var(--blue-panel);
+    border: 1px solid var(--gold-dark);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.summoner-slot.active {
+    border-color: var(--blue-accent);
+}
+
+.summoner-slot img {
+    width: 30px;
+    height: 30px;
+}
+
+/* Skins */
+.skin-picker-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.skin-card {
+    position: relative;
+    background: none;
+    border: 1px solid var(--gold-dark);
+    padding: 0;
+    cursor: pointer;
+}
+
+.skin-card img {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
+    display: block;
+}
+
+.skin-card span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 6px;
+    background: rgba(1, 10, 19, 0.8);
+    color: var(--text-bright);
+    font-size: 0.85rem;
+}
+
+.skin-card.selected {
+    border-color: var(--gold);
+}
+
+/* Runes */
+.rune-editor-body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.rune-page-select {
+    background: var(--blue-panel);
+    border: 1px solid var(--gold-dark);
+    color: var(--text-bright);
+    padding: 10px;
+    font-size: 0.95rem;
+}
+
+.rune-tree-choice {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+}
+
+.rune-tree-button {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    padding: 6px;
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+.rune-tree-button.selected {
+    border-color: var(--gold);
+    opacity: 1;
+}
+
+.rune-tree-button img {
+    width: 34px;
+    height: 34px;
+    display: block;
+}
+
+.rune-slot {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rune-button {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    padding: 3px;
+    cursor: pointer;
+    opacity: 0.45;
+}
+
+.rune-button.selected {
+    border-color: var(--blue-accent);
+    opacity: 1;
+}
+
+.rune-button img {
+    width: 40px;
+    height: 40px;
+    display: block;
+}
+
+.rune-button.shard {
+    border-radius: 4px;
+    border: 1px solid var(--gold-dark);
+    color: var(--text);
+    font-size: 0.7rem;
+    padding: 8px 10px;
+    opacity: 0.6;
+}
+
+.rune-button.shard.selected {
+    border-color: var(--blue-accent);
+    color: var(--blue-accent);
+    opacity: 1;
+}
+
+.rune-section-title {
+    color: var(--gold);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: center;
+    margin-top: 6px;
+}

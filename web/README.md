@@ -1,19 +1,20 @@
-# :iphone: Mimic - Web
+# :iphone: Mimic Reborn - Web
 
-The web component for Mimic. Uses [Vue](https://vuejs.org), [TypeScript](https://www.typescriptlang.org) and [Stylus](http://stylus-lang.com). This is the actual component that powers the web application. It is served using a simple Nginx static host, with CloudFlare for caching.
+The mobile UI, built with React 18 + Vite + TypeScript. In production it is served by Conduit itself on the local network, so the connection target is simply the page's own origin.
+
+## Structure
+
+- `src/lib/` — the platform layer: `socket.ts` (encrypted websocket + request/observe primitives), `crypto.ts` (ECDH/AES-GCM, mirrors `conduit/Crypto/SessionCrypto.cs`), `lcu.ts` (React hooks), `static-data.ts` (DataDragon/CommunityDragon loaders — champions and runes always up to date, nothing hardcoded).
+- `src/components/` — one folder per screen: connect flow, lobby (create, members, roles, invites), received invitations, queue, ready check, and the champion select suite (picker, bans, timer, summoner spells, skins, runes, ARAM bench).
+
+All feature panels are mounted simultaneously and self-gate on LCU state, like the original Mimic.
 
 ## Development
 
-You will need [Yarn](https://yarnpkg.com/lang/en/) for developing the web component.
+```
+npm install
+npm run dev     # Vite dev server; proxies /mobile + /api to a Conduit on localhost:51000
+npm run build   # type-checks and outputs dist/ (embedded into Conduit by ../publish.ps1)
+```
 
-After checking out the source, run `yarn install` to install all dependencies. You will only need to do this after pulling updates from Github.
-
-During development, you can use `yarn serve` to start a webserver at [localhost:8080](http://localhost:8080). This webserver uses Hot Module Reloading to automatically refresh the UI whenever a file is edited.
-
-Building a release bundle can be done using `yarn build`. This will generate a folder called `dist/` that contains all files needed to deploy.
-
-Building is managed through vue-cli. It takes care of automatically optimizing, minifying, transpiling and everything else.
-
-## License
-
--The web component of Mimic is released under the [MIT](https://github.com/molenzwiebel/Mimic/blob/master/LICENSE) license. See the index README for more info.
+Crypto uses `@noble/*` libraries instead of WebCrypto so the app works on plain `http://` LAN origins, where `crypto.subtle` is unavailable.

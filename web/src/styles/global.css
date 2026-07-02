@@ -1,0 +1,126 @@
+/* League-flavored theme shared by all screens. */
+:root {
+    --gold: #c8aa6e;
+    --gold-bright: #f0e6d2;
+    --gold-dark: #785a28;
+    --blue-dark: #010a13;
+    --blue-panel: #0a1428;
+    --blue-accent: #0ac8b9;
+    --red: #e84057;
+    --text: #a09b8c;
+    --text-bright: #f0e6d2;
+
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+    height: 100%;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body {
+    background: var(--blue-dark);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    touch-action: manipulation;
+}
+
+button {
+    font-family: inherit;
+}
+
+.screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+    overflow: hidden;
+}
+
+.screen-title {
+    color: var(--text-bright);
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 0.05em;
+    padding: 16px 0 4px;
+}
+
+.screen-subtitle {
+    color: var(--gold);
+    font-size: 0.85rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Gold-bordered League buttons. */
+.lcu-button {
+    display: block;
+    background: linear-gradient(to bottom, #1e2328, #0a1428);
+    border: 2px solid var(--gold-dark);
+    color: var(--gold-bright);
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 28px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.lcu-button:active {
+    border-color: var(--gold);
+}
+
+.lcu-button:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.lcu-button.confirm {
+    border-color: var(--blue-accent);
+    color: var(--blue-accent);
+}
+
+.lcu-button.deny {
+    border-color: var(--red);
+    color: var(--red);
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(1, 10, 19, 0.94);
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+}
+
+.fade-in {
+    animation: fade-in 0.25s ease-out;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

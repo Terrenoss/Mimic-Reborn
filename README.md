@@ -1,28 +1,49 @@
-> [!CAUTION]
-> This open source version of Mimic is no longer maintained. Thanks for all the positive feedback over the years!
-
 ![Mimic Logo](assets/mimic-logo.png?raw=true)
 
-[![Build Status](https://travis-ci.org/molenzwiebel/Mimic.svg?branch=master)](https://travis-ci.org/molenzwiebel/Mimic)
-[![Discord](https://discordapp.com/api/guilds/249481856687407104/widget.png?style=shield)](https://discord.gg/bfxdsRC)
+# :satellite: Mimic Reborn
 
-# :satellite: Mimic
-The new League client. Except it's on your phone.
+**The League client, on your phone — no server required.**
 
-Mimic is a different UI for the new League client that renders on your phone as a webpage instead of an application on your computer. It allows you to go through the game setup flow (from lobby until the end of champ select) from the safety of your toilet seat.
+Mimic Reborn is a modernized fork of [Mimic](https://github.com/molenzwiebel/Mimic) by molenzwiebel (no longer maintained). It lets you run the full game setup flow — lobby, queue, ready check and champion select — from your phone, while the League client runs on your PC.
 
-This repository contains the source code for Mimic. [Looking for the page with features and downloads instead?](https://mimic.lol)
+## What changed vs. the original Mimic?
 
-## Developing Mimic
+| | Mimic v2 (2019) | Mimic Reborn v3 |
+|---|---|---|
+| Architecture | Central relay server (rift.mimic.lol) required | **LAN-direct: your phone talks straight to your PC.** No central server, nothing to shut down. |
+| Desktop app | WPF, .NET Framework 4.6.1, Fody | .NET 9 tray app with an embedded web server, single-file publish |
+| Web UI | Vue 2 + vue-cli (EOL) | React 18 + Vite + TypeScript 5 |
+| Encryption | RSA-2048 + AES-CBC | ECDH P-256 + HKDF + AES-256-GCM, end-to-end |
+| Static data | Partially hardcoded (broke on new champions) | Loaded live from DataDragon/CommunityDragon |
+| Updates | Manual | Checks GitHub Releases at startup |
 
-Mimic is composed of three different components: **web**, **conduit** and **rift**. Please read the appropriate READMEs in the subdirectories for information on how to develop for the platform.
+## How it works
 
-- [**Web**](/web) is the user interface presented to users. It uses Vue with Typescript and handles the actual controlling of the client.
+1. Run **MimicConduit.exe** on your PC. It sits in the tray, finds the League client automatically, and serves the mobile UI on your local network.
+2. Click the tray icon and scan the QR code with your phone (same Wi-Fi network).
+3. Approve the device on your PC — once per device.
+4. Play. All traffic stays on your LAN, encrypted end-to-end.
 
-- [**Conduit**](/conduit) is the Windows application that redirects client traffic to the mobile website. It is written in C# and uses Websockets to connect to both the LCU and the mobile client.
+Away from home? Use [Tailscale](https://tailscale.com/) (or any VPN back to your home network) and open the same URL.
 
-- [**Rift**](/rift) is a Node/Express application that is responsible for tunneling a `Web <-> Conduit` connection through a central server. It also keeps track of the 6-digit codes issued to clients, doing so by signing JWT tokens. It does not get into contact with any raw data, since all traffic is end-to-end encrypted.
+## Is this allowed by Riot?
+
+Mimic Reborn only uses the official local League Client API (LCU) — the same API used by tools like Blitz or Porofessor. It performs no memory reading, no injection, and no gameplay automation: it only relays actions you take manually on your phone. This falls within Riot's League Client development policies, but as always, third-party tools are used at your own risk.
+
+## Components
+
+- [**conduit**](/conduit) — Windows tray app (.NET 9). Connects to the LCU, serves the web UI, proxies encrypted traffic. Build: `dotnet build`.
+- [**web**](/web) — Mobile UI (React + Vite + TypeScript). Dev: `npm run dev` (proxies to a running Conduit). Build: `npm run build`.
+- [**rift**](/rift) — Legacy optional relay server from Mimic v2, kept for reference. The v3 client uses LAN-direct connections and does not need it. A self-hostable remote relay may return in a future version.
+
+## Building a release
+
+```powershell
+./publish.ps1
+```
+
+This builds the web UI, embeds it into Conduit, and publishes a single self-contained `MimicConduit.exe` (no .NET install required on the target machine).
 
 ## License
 
-Mimic and all of its components are released under the [MIT](https://github.com/molenzwiebel/Mimic/blob/master/LICENSE) license. Feel free to browse through the code as you like, and if you end up making any improvements or changes, please do not hesitate to make a pull request. :)
+MIT, like the original project. Huge thanks to [molenzwiebel](https://github.com/molenzwiebel) for years of Mimic. :heart:

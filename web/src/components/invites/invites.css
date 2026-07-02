@@ -1,0 +1,36 @@
+.invites-container {
+    position: absolute;
+    top: calc(var(--safe-top) + 8px);
+    left: 8px;
+    right: 8px;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.invite-card {
+    background: var(--blue-panel);
+    border: 1px solid var(--gold);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.invite-card-name {
+    color: var(--gold-bright);
+    font-weight: 600;
+    margin-right: 6px;
+}
+
+.invite-card-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.invite-card-buttons .lcu-button {
+    flex: 1;
+    padding: 8px;
+    font-size: 0.8rem;
+}

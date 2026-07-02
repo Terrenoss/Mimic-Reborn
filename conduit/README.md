@@ -1,11 +1,23 @@
-# :electric_plug: Mimic - Conduit
+# :electric_plug: Mimic Reborn - Conduit
 
-Client-side C# Windows application that handles the connection between the LCU and the mobile website by acting as a "passthrough" for messages. It uses [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) to communicate with a central hub server that is responsible for tunneling connections to the phones. A locally stored signed JWT is used to identify the computer through its 6 digit identifier. All messages except for the discovery/registration messages are encrypted with a key that only the mobile connection and Conduit knows, for extra security. Conduit detects the League client by querying the list of active processes periodically.
+Windows tray application (.NET 9) that is the heart of Mimic Reborn:
+
+- Detects the running League client (lockfile, WMI fallback) and connects to the LCU API.
+- Runs an embedded Kestrel web server on port **51000** that serves the mobile UI (`wwwroot/`, built from [/web](../web)) and accepts encrypted websocket connections on `/mobile`.
+- Acts as a fully generic proxy: the mobile client decides which LCU endpoints to call/observe; Conduit holds no League-domain knowledge.
+- End-to-end encryption: ECDH P-256 key agreement, HKDF-SHA256, AES-256-GCM (see `Crypto/SessionCrypto.cs`; the web counterpart is `web/src/lib/crypto.ts`).
+- Device approval: each new phone must be allowed once via a desktop prompt; approvals persist in `%APPDATA%\Mimic-Reborn`.
+- Checks GitHub Releases for a newer version at startup.
+
+## Protocol
+
+Messages are JSON arrays `[opcode, ...args]` over the websocket. Opcodes 3-9 (version, subscribe, unsubscribe, request, response, update) are inherited unchanged from Mimic v2; opcodes 0-1 implement the LAN-direct handshake (`Hello` carries Conduit's public key, `Secret` the client's key plus an encrypted identity blob). After the handshake, every frame is an encrypted string `base64(nonce):base64(ciphertext||tag)`.
 
 ## Development
 
-Simply opening the `MimicConduit.sln` file in [Visual Studio](https://www.visualstudio.com) should install all dependencies via NuGet and be ready to go. Packaging for release is as simple as choosing the release target and building, since Fody.Costura will automatically include the required .dlls in the resulting exe.
+```
+dotnet build       # requires .NET SDK 9+
+dotnet run         # starts the tray app (UI served from wwwroot if present)
+```
 
-## License
-
-The conduit component of Mimic is released under the [MIT](https://github.com/molenzwiebel/Mimic/blob/master/LICENSE) license. See the index README for more info.
+For UI development you don't need to rebuild Conduit: run `npm run dev` in [/web](../web) — Vite proxies `/mobile` to a locally running Conduit.

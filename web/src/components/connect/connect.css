@@ -1,0 +1,26 @@
+.connect-screen {
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 24px;
+    text-align: center;
+}
+
+.connect-logo {
+    color: var(--gold);
+    font-size: 2.2rem;
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;
+    font-weight: 300;
+}
+
+.connect-poro {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+}
+
+.connect-text {
+    max-width: 320px;
+    line-height: 1.5;
+}

@@ -1,187 +1,74 @@
-﻿using Microsoft.Win32;
-using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
-using System.Xml.Serialization;
+using System.Text.Json;
+using Microsoft.Win32;
 
-namespace Conduit
+namespace Conduit;
+
+public class Settings
 {
-    /**
-     * Class responsible for handling filesystem persistence. In particular, this stores our JWT and keypairs.
-     */
-    class Persistence
+    public HashSet<string> ApprovedDevices { get; set; } = new();
+}
+
+/// <summary>
+/// Stores settings as JSON in %APPDATA%\Mimic-Reborn and manages the
+/// launch-at-startup registry entry.
+/// </summary>
+public static class Persistence
+{
+    private const string RunKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+
+    private static readonly string SettingsPath = Path.Combine(MimicConfig.AppDataDir, "settings.json");
+    private static readonly Lock WriteLock = new();
+    private static Settings? _settings;
+
+    public static Settings Load()
     {
-        public static string DATA_DIRECTORY = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Mimic");
-        public static event Action OnHubCodeChanged;
+        if (_settings != null) return _settings;
 
-        private static readonly string HUB_TOKEN_PATH = Path.Combine(DATA_DIRECTORY, "token");
-        private static readonly string KEYPAIR_PATH = Path.Combine(DATA_DIRECTORY, "keys");
-        private static readonly string DEVICES_PATH = Path.Combine(DATA_DIRECTORY, "devices");
-        private static readonly RegistryKey BOOT_KEY = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-
-        static Persistence()
+        try
         {
-            // Create directory if needed.
-            if (!Directory.Exists(DATA_DIRECTORY)) Directory.CreateDirectory(DATA_DIRECTORY);
+            _settings = JsonSerializer.Deserialize<Settings>(File.ReadAllText(SettingsPath));
+        }
+        catch
+        {
+            // Missing or corrupt settings: start fresh.
         }
 
-        /**
-         * Returns the stored hub token for this computer, or null if none are found.
-         */
-        public static string GetHubToken()
+        return _settings ??= new Settings();
+    }
+
+    private static void Save()
+    {
+        lock (WriteLock)
         {
-            try
-            {
-                if (!File.Exists(HUB_TOKEN_PATH)) return null;
-                return File.ReadAllText(HUB_TOKEN_PATH);
-            }
-            catch
-            {
-                // If we have an error, just ignore it and return null.
-                return null;
-            }
+            Directory.CreateDirectory(MimicConfig.AppDataDir);
+            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(Load()));
         }
+    }
 
-        /**
-         * Returns the code that needs to be entered on the mobile interface to connect to this
-         * phone. Returns null if no token is received yet.
-         */
-        public static string GetHubCode()
+    public static bool IsDeviceApproved(string identity) => Load().ApprovedDevices.Contains(identity);
+
+    public static void ApproveDevice(string identity)
+    {
+        Load().ApprovedDevices.Add(identity);
+        Save();
+    }
+
+    public static bool LaunchesAtStartup()
+    {
+        using var key = Registry.CurrentUser.OpenSubKey(RunKey);
+        return key?.GetValue(MimicConfig.AppName) != null;
+    }
+
+    public static void SetLaunchAtStartup(bool enabled)
+    {
+        using var key = Registry.CurrentUser.CreateSubKey(RunKey);
+        if (enabled)
         {
-            var token = GetHubToken();
-            if (token == null) return null;
-
-            var base64Json = token.Split('.')[1];
-
-            // We need to pad to the nearest multiple of 4 here since jwts are stored without padding =s.
-            var jsonContents = Encoding.UTF8.GetString(Convert.FromBase64String(base64Json.PadRight(4 * ((base64Json.Length + 3) / 4), '=')));
-            return SimpleJson.DeserializeObject<dynamic>(jsonContents)["code"];
+            key.SetValue(MimicConfig.AppName, Environment.ProcessPath ?? Application.ExecutablePath);
         }
-
-        /**
-         * Writes the specified new hub JWT to storage.
-         */
-        public static void SetHubToken(string token)
+        else
         {
-            File.WriteAllText(HUB_TOKEN_PATH, token);
-
-            // Invoke listeners
-            OnHubCodeChanged?.Invoke();
-        }
-
-        /**
-         * Checks if the specified device UUID has been seen and approved before.
-         */
-        public static bool IsDeviceApproved(string deviceUUID)
-        {
-            try
-            {
-                if (!File.Exists(DEVICES_PATH)) return false;
-
-                var contents = File.ReadAllLines(DEVICES_PATH);
-                return contents.Any(x => x == deviceUUID);
-            }
-            catch
-            {
-                // Ignore errors.
-                return false;
-            }
-        }
-
-        /**
-         * Adds the specified device UUID to the list of approved devices. Note: this
-         * does not check if the device was previously approved, calling this with an
-         * approved device will lead to duplicate entries.
-         */
-        public static void ApproveDevice(string deviceUUID)
-        {
-            try
-            {
-                // Simply append the UUID to the list of approved devices. This will
-                // create the file if it did not yet exist.
-                File.AppendAllText(DEVICES_PATH, deviceUUID + "\n");
-            }
-            catch
-            {
-                // Ignore errors.
-            }
-        }
-
-        /**
-         * Checks if conduit is configured to launch at startup.
-         */
-        public static bool LaunchesAtStartup()
-        {
-            // Update path to current executable if we moved.
-            var exists = BOOT_KEY.GetValue(Program.APP_NAME) != null;
-
-            if (exists)
-            {
-                BOOT_KEY.SetValue(Program.APP_NAME, Assembly.GetExecutingAssembly().Location);
-            }
-
-            return exists;
-        }
-
-        /**
-         * Toggles whether or not mimic should launch at startup.
-         */
-        public static void ToggleLaunchAtStartup()
-        {
-            if (LaunchesAtStartup())
-            {
-                BOOT_KEY.DeleteValue(Program.APP_NAME);
-            } else
-            {
-                BOOT_KEY.SetValue(Program.APP_NAME, Assembly.GetExecutingAssembly().Location);
-            }
-        }
-
-        /**
-         * Either loads the stored keys into a new RSACryptoServiceProvider, or generates
-         * new keys and stores them.
-         */
-        public static RSACryptoServiceProvider GetRSAProvider()
-        {
-            try
-            {
-                // The stored file doesn't exist, generate a new one.
-                if (!File.Exists(KEYPAIR_PATH)) return GenerateAndStoreKeys();
-
-                // Else, import from XML.
-                var reader = new StringReader(File.ReadAllText(KEYPAIR_PATH));
-                var deserializer = new XmlSerializer(typeof(RSAParameters));
-                var rsaParams = (RSAParameters) deserializer.Deserialize(reader);
-
-                var provider = new RSACryptoServiceProvider();
-                provider.ImportParameters(rsaParams);
-
-                return provider;
-            }
-            catch
-            {
-                // Something bad happened. Regen our keys.
-                return GenerateAndStoreKeys();
-            }
-        }
-
-        /**
-         * Utility helper to generate and store a new set of 2048bit RSA keys.
-         */
-        private static RSACryptoServiceProvider GenerateAndStoreKeys()
-        {
-            var provider = new RSACryptoServiceProvider(2048);
-
-            // Write the constants as XML to file.
-            var writer = new StringWriter();
-            var serializer = new XmlSerializer(typeof(RSAParameters));
-            serializer.Serialize(writer, provider.ExportParameters(true));
-            File.WriteAllText(KEYPAIR_PATH, writer.ToString());
-
-            return provider;
+            key.DeleteValue(MimicConfig.AppName, throwOnMissingValue: false);
         }
     }
 }
