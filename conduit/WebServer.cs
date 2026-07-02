@@ -50,7 +50,8 @@ public class WebServer
             name = MimicConfig.AppName,
             version = MimicConfig.Version,
             machine = Environment.MachineName,
-            leagueConnected = _league.IsConnected
+            leagueConnected = _league.IsConnected,
+            lanUrl = GetLanUrl()
         }));
 
         app.Map("/mobile", async context =>
@@ -83,14 +84,26 @@ public class WebServer
     /// <summary>Best local LAN IPv4, used to build the URL shown in the QR code.</summary>
     public static string GetLanAddress()
     {
-        var candidates =
+        // Machines often have VPN/VMware/Hyper-V/APIPA adapters that are
+        // unreachable from a phone. The interface holding the default gateway
+        // is the one actually wired to the local network, so prefer it; among
+        // the rest, prefer private (RFC1918) addresses and never APIPA.
+        var candidates = (
             from iface in NetworkInterface.GetAllNetworkInterfaces()
             where iface.OperationalStatus == OperationalStatus.Up
                   && iface.NetworkInterfaceType != NetworkInterfaceType.Loopback
-                  && !iface.Description.Contains("Virtual", StringComparison.OrdinalIgnoreCase)
-            from addr in iface.GetIPProperties().UnicastAddresses
+            let props = iface.GetIPProperties()
+            let hasGateway = props.GatewayAddresses.Any(g => g.Address.AddressFamily == AddressFamily.InterNetwork)
+            from addr in props.UnicastAddresses
             where addr.Address.AddressFamily == AddressFamily.InterNetwork
-            select addr.Address;
+            let bytes = addr.Address.GetAddressBytes()
+            where !(bytes[0] == 169 && bytes[1] == 254) // APIPA is never routable
+            let isPrivate = bytes[0] == 192 && bytes[1] == 168
+                            || bytes[0] == 10
+                            || bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31
+            orderby hasGateway descending, isPrivate descending
+            select addr.Address
+        ).ToList();
 
         return (candidates.FirstOrDefault() ?? IPAddress.Loopback).ToString();
     }
