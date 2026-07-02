@@ -99,6 +99,9 @@ export const en = {
     "runes.noPage": "No editable rune page. Create one in the client first.",
     "runes.secondary": "Secondary: {tree}",
     "runes.shards": "Stat Shards",
+    "runes.recommended": "Recommended (Riot)",
+    "runes.apply": "Apply",
+    "runes.applied": "Applied ✓",
 
     // Settings
     "settings.language": "Language"

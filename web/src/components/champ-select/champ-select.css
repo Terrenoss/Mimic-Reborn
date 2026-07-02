@@ -438,6 +438,35 @@
     opacity: 1;
 }
 
+.rune-recommended {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.rune-reco-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--blue-panel);
+    border: 1px solid var(--gold-dark);
+    color: var(--text-bright);
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.rune-reco-button img {
+    width: 28px;
+    height: 28px;
+}
+
+.rune-reco-button.applied {
+    border-color: var(--blue-accent);
+    color: var(--blue-accent);
+}
+
 .rune-section-title {
     color: var(--gold);
     font-size: 0.8rem;

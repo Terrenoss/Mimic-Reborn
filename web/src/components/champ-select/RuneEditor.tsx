@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
 import { loadRuneTrees, runeIconUrl } from "../../lib/static-data";
 import { useT } from "../../lib/i18n";
+import { useChampSelect } from "./ChampSelect";
 
 // Stat shards are not in runesReforged.json; ids are stable.
 const STAT_SHARDS: number[][] = [
@@ -21,14 +22,33 @@ const SHARD_NAMES: Record<number, string> = {
 };
 
 export default function RuneEditor(props: { onClose: () => void }) {
+    const { localPlayer } = useChampSelect();
     const pages = useLcuObserve<any[]>("/lol-perks/v1/pages");
     const currentPage = useLcuObserve<any>("/lol-perks/v1/currentpage");
     const [trees, setTrees] = useState<any[]>([]);
+    const [recommended, setRecommended] = useState<any[]>([]);
+    const [appliedIndex, setAppliedIndex] = useState<number | null>(null);
     const t = useT();
 
     useEffect(() => {
         loadRuneTrees().then(setTrees);
     }, []);
+
+    // Riot's own recommended pages for this champion/position/map — straight
+    // from the LCU, no third-party site needed.
+    useEffect(() => {
+        if (!localPlayer?.championId) return;
+        setAppliedIndex(null);
+        (async () => {
+            const session = await lcu.get("/lol-gameflow/v1/session");
+            const mapId = session.content?.map?.id ?? session.content?.gameData?.queue?.mapId ?? 11;
+            const position = (localPlayer.assignedPosition || "middle").toLowerCase();
+            const result = await lcu.get(
+                `/lol-perks/v1/recommended-pages/champion/${localPlayer.championId}/position/${position}/map/${mapId}`
+            );
+            if (result.status === 200 && Array.isArray(result.content)) setRecommended(result.content);
+        })();
+    }, [localPlayer?.championId, localPlayer?.assignedPosition]);
 
     const editablePages = (pages ?? []).filter(p => p.isEditable);
     const page = currentPage && currentPage.isEditable ? currentPage : editablePages[0];
@@ -49,6 +69,15 @@ export default function RuneEditor(props: { onClose: () => void }) {
         savePage({ selectedPerkIds: perks });
     };
 
+    const applyRecommended = (reco: any, index: number) => {
+        savePage({
+            primaryStyleId: reco.primaryPerkStyleId,
+            subStyleId: reco.secondaryPerkStyleId,
+            selectedPerkIds: reco.perks.map((p: any) => p.id)
+        });
+        setAppliedIndex(index);
+    };
+
     if (!page || trees.length === 0) {
         return (
             <div className="overlay fade-in rune-editor">
@@ -63,11 +92,44 @@ export default function RuneEditor(props: { onClose: () => void }) {
         );
     }
 
+    // Finds a rune's ddragon icon across all trees (used for keystone previews).
+    const runeIcon = (runeId: number): string | null => {
+        for (const tree of trees) {
+            for (const slot of tree.slots) {
+                const rune = slot.runes.find((r: any) => r.id === runeId);
+                if (rune) return runeIconUrl(rune.icon);
+            }
+        }
+        return null;
+    };
+
     return (
         <div className="overlay fade-in rune-editor">
             <h2 className="screen-title">{page.name}</h2>
 
             <div className="rune-editor-body">
+                {recommended.length > 0 && (
+                    <>
+                        <h3 className="rune-section-title">{t("runes.recommended")}</h3>
+                        <div className="rune-recommended">
+                            {recommended.map((reco, index) => {
+                                const icon = runeIcon(reco.keystone?.id);
+                                return (
+                                    <button
+                                        key={reco.recommendationId ?? index}
+                                        className={"rune-reco-button" + (appliedIndex === index ? " applied" : "")}
+                                        onClick={() => applyRecommended(reco, index)}>
+                                        {icon && <img src={icon} alt="" />}
+                                        <span>
+                                            {appliedIndex === index ? t("runes.applied") : reco.keystone?.name ?? t("runes.apply")}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
+
                 <select
                     className="rune-page-select"
                     value={page.id}

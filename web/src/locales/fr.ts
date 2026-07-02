@@ -101,6 +101,9 @@ export const fr: Messages = {
     "runes.noPage": "Aucune page de runes modifiable. Crée-en une dans le client d'abord.",
     "runes.secondary": "Secondaire : {tree}",
     "runes.shards": "Fragments de statistiques",
+    "runes.recommended": "Recommandées (Riot)",
+    "runes.apply": "Appliquer",
+    "runes.applied": "Appliquée ✓",
 
     // Réglages
     "settings.language": "Langue"
