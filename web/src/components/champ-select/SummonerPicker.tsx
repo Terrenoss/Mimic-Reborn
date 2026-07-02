@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { lcu } from "../../lib/lcu";
 import { summonerSpellUrl } from "../../lib/static-data";
+import { useT } from "../../lib/i18n";
 import { useChampSelect } from "./ChampSelect";
 
 export default function SummonerPicker(props: { onClose: () => void }) {
     const { localPlayer, summonerSpells, ddragonVersion } = useChampSelect();
     const [gameModeSpells, setGameModeSpells] = useState<number[] | null>(null);
     const [replacing, setReplacing] = useState<1 | 2>(1);
+    const t = useT();
 
     // The LCU knows which spells are legal in the current game mode.
     useEffect(() => {
@@ -35,7 +37,7 @@ export default function SummonerPicker(props: { onClose: () => void }) {
 
     return (
         <div className="overlay fade-in summoner-picker">
-            <h2 className="screen-title">Summoner Spells</h2>
+            <h2 className="screen-title">{t("spells.title")}</h2>
 
             <div className="summoner-picker-slots">
                 {([1, 2] as const).map(slot => (
@@ -44,7 +46,7 @@ export default function SummonerPicker(props: { onClose: () => void }) {
                         className={"summoner-slot" + (replacing === slot ? " active" : "")}
                         onClick={() => setReplacing(slot)}>
                         {current(slot) && <img src={summonerSpellUrl(ddragonVersion, current(slot).id)} alt="" />}
-                        <span>{current(slot)?.name ?? "None"}</span>
+                        <span>{current(slot)?.name ?? t("spells.none")}</span>
                     </button>
                 ))}
             </div>
@@ -64,7 +66,7 @@ export default function SummonerPicker(props: { onClose: () => void }) {
 
             <div className="champion-picker-actions">
                 <button className="lcu-button" onClick={props.onClose}>
-                    Done
+                    {t("picker.done")}
                 </button>
             </div>
         </div>

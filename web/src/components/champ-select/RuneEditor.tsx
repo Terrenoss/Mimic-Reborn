@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
 import { loadRuneTrees, runeIconUrl } from "../../lib/static-data";
+import { useT } from "../../lib/i18n";
 
 // Stat shards are not in runesReforged.json; ids are stable.
 const STAT_SHARDS: number[][] = [
@@ -23,6 +24,7 @@ export default function RuneEditor(props: { onClose: () => void }) {
     const pages = useLcuObserve<any[]>("/lol-perks/v1/pages");
     const currentPage = useLcuObserve<any>("/lol-perks/v1/currentpage");
     const [trees, setTrees] = useState<any[]>([]);
+    const t = useT();
 
     useEffect(() => {
         loadRuneTrees().then(setTrees);
@@ -50,12 +52,12 @@ export default function RuneEditor(props: { onClose: () => void }) {
     if (!page || trees.length === 0) {
         return (
             <div className="overlay fade-in rune-editor">
-                <h2 className="screen-title">Runes</h2>
+                <h2 className="screen-title">{t("runes.title")}</h2>
                 <p className="create-lobby-loading">
-                    {trees.length === 0 ? "Loading runes..." : "No editable rune page. Create one in the client first."}
+                    {trees.length === 0 ? t("runes.loading") : t("runes.noPage")}
                 </p>
                 <div className="champion-picker-actions">
-                    <button className="lcu-button" onClick={props.onClose}>Close</button>
+                    <button className="lcu-button" onClick={props.onClose}>{t("picker.close")}</button>
                 </div>
             </div>
         );
@@ -104,7 +106,7 @@ export default function RuneEditor(props: { onClose: () => void }) {
                     </div>
                 ))}
 
-                <h3 className="rune-section-title">Secondary: {secondaryTree?.name}</h3>
+                <h3 className="rune-section-title">{t("runes.secondary", { tree: secondaryTree?.name ?? "" })}</h3>
                 <div className="rune-tree-choice">
                     {trees.filter(t => t.id !== page.primaryStyleId).map(tree => (
                         <button
@@ -128,7 +130,7 @@ export default function RuneEditor(props: { onClose: () => void }) {
                     </div>
                 ))}
 
-                <h3 className="rune-section-title">Stat Shards</h3>
+                <h3 className="rune-section-title">{t("runes.shards")}</h3>
                 {STAT_SHARDS.map((row, rowIndex) => (
                     <div key={rowIndex} className="rune-slot shards">
                         {row.map(shardId => (
@@ -149,7 +151,7 @@ export default function RuneEditor(props: { onClose: () => void }) {
 
             <div className="champion-picker-actions">
                 <button className="lcu-button" onClick={props.onClose}>
-                    Done
+                    {t("picker.done")}
                 </button>
             </div>
         </div>

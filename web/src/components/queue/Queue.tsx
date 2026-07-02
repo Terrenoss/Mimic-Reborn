@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
+import { useT } from "../../lib/i18n";
 import "./queue.css";
 
 function formatSeconds(total: number): string {
@@ -11,6 +12,7 @@ function formatSeconds(total: number): string {
 export default function Queue() {
     const search = useLcuObserve<any>("/lol-matchmaking/v1/search");
     const [elapsed, setElapsed] = useState(0);
+    const t = useT();
 
     const inQueue = search != null && search.searchState === "Searching";
 
@@ -28,11 +30,11 @@ export default function Queue() {
             <div className="queue-info">
                 <span className="queue-time">{formatSeconds(elapsed)}</span>
                 <span className="queue-estimate">
-                    Estimated: {formatSeconds(search.estimatedQueueTime ?? 0)}
+                    {t("queue.estimated", { time: formatSeconds(search.estimatedQueueTime ?? 0) })}
                 </span>
             </div>
             <button className="lcu-button deny" onClick={() => lcu.del("/lol-lobby/v2/lobby/matchmaking/search")}>
-                Cancel
+                {t("queue.cancel")}
             </button>
         </div>
     );

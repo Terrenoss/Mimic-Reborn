@@ -1,4 +1,5 @@
 import { POSITION_NAMES, centeredSplashUrl, splashUrl, summonerSpellUrl } from "../../lib/static-data";
+import { t } from "../../lib/i18n";
 import { actionsForCell, useChampSelect } from "./ChampSelect";
 
 function MemberCard({ member, isEnemy }: { member: any; isEnemy: boolean }) {
@@ -42,9 +43,9 @@ function MemberCard({ member, isEnemy }: { member: any; isEnemy: boolean }) {
             )}
             <div className="cs-member-shade" />
             <div className="cs-member-info">
-                <span className="cs-member-name">{member.summonerName || member.gameName || (isEnemy ? "Enemy" : "Teammate")}</span>
+                <span className="cs-member-name">{member.summonerName || member.gameName || (isEnemy ? t("cs.enemy") : t("cs.teammate"))}</span>
                 <span className="cs-member-sub">
-                    {champion ? champion.name : activeAction ? (activeAction.type === "ban" ? "Banning..." : "Picking...") : ""}
+                    {champion ? champion.name : activeAction ? (activeAction.type === "ban" ? t("cs.banning") : t("cs.picking")) : ""}
                     {member.assignedPosition && ` · ${POSITION_NAMES[member.assignedPosition.toUpperCase()] ?? member.assignedPosition}`}
                 </span>
             </div>
@@ -67,7 +68,7 @@ export default function Members() {
             {(session.myTeam ?? []).map((member: any) => (
                 <MemberCard key={member.cellId} member={member} isEnemy={false} />
             ))}
-            {showEnemies && <div className="cs-members-divider">Enemy Team</div>}
+            {showEnemies && <div className="cs-members-divider">{t("cs.enemyTeam")}</div>}
             {(session.theirTeam ?? []).map((member: any) => (
                 <MemberCard key={member.cellId} member={member} isEnemy={true} />
             ))}

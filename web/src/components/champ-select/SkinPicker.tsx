@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { lcu } from "../../lib/lcu";
 import { splashUrl } from "../../lib/static-data";
+import { useT } from "../../lib/i18n";
 import { useChampSelect } from "./ChampSelect";
 
 export default function SkinPicker(props: { onClose: () => void }) {
     const { localPlayer, champions } = useChampSelect();
     const [skins, setSkins] = useState<any[]>([]);
+    const t = useT();
 
     const champion = champions[localPlayer.championId];
 
@@ -30,7 +32,7 @@ export default function SkinPicker(props: { onClose: () => void }) {
 
     return (
         <div className="overlay fade-in skin-picker">
-            <h2 className="screen-title">{champion.name} Skins</h2>
+            <h2 className="screen-title">{t("skins.title", { champion: champion.name })}</h2>
 
             <div className="skin-picker-list">
                 {skins.map(skin => {
@@ -45,12 +47,12 @@ export default function SkinPicker(props: { onClose: () => void }) {
                         </button>
                     );
                 })}
-                {skins.length === 0 && <p className="create-lobby-loading">Loading skins...</p>}
+                {skins.length === 0 && <p className="create-lobby-loading">{t("skins.loading")}</p>}
             </div>
 
             <div className="champion-picker-actions">
                 <button className="lcu-button" onClick={props.onClose}>
-                    Done
+                    {t("picker.done")}
                 </button>
             </div>
         </div>

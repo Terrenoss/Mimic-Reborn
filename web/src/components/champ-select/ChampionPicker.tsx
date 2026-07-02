@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
 import { championSquareUrl } from "../../lib/static-data";
+import { useT } from "../../lib/i18n";
 import { actionsForCell, useChampSelect } from "./ChampSelect";
 
 export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?: number; onClose: () => void }) {
@@ -9,6 +10,7 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
     const bannable = useLcuObserve<number[]>("/lol-champ-select/v1/bannable-champion-ids");
     const [search, setSearch] = useState("");
     const [selected, setSelected] = useState<number | null>(null);
+    const t = useT();
 
     const isBan = props.mode === "ban";
     const availableIds = (isBan ? bannable : pickable) ?? [];
@@ -49,10 +51,10 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
 
     return (
         <div className="overlay fade-in champion-picker">
-            <h2 className="screen-title">{isBan ? "Ban a champion" : "Pick your champion"}</h2>
+            <h2 className="screen-title">{isBan ? t("picker.banTitle") : t("picker.pickTitle")}</h2>
             <input
                 className="champion-picker-search"
-                placeholder="Search..."
+                placeholder={t("picker.search")}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
             />
@@ -71,10 +73,10 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
 
             <div className="champion-picker-actions">
                 <button className={"lcu-button " + (isBan ? "deny" : "confirm")} disabled={selected == null} onClick={lockIn}>
-                    {isBan ? "Ban" : "Lock In"}
+                    {isBan ? t("picker.ban") : t("picker.lockIn")}
                 </button>
                 <button className="lcu-button" onClick={props.onClose}>
-                    Close
+                    {t("picker.close")}
                 </button>
             </div>
         </div>

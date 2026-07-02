@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
 import { gameModeName } from "../../lib/static-data";
+import { useT } from "../../lib/i18n";
 import CreateLobby from "./CreateLobby";
 import LobbyMember from "./LobbyMember";
 import RolePicker from "./RolePicker";
@@ -8,6 +9,7 @@ import InviteOverlay from "./InviteOverlay";
 import "./lobby.css";
 
 export default function Lobby() {
+    const t = useT();
     const lobby = useLcuObserve<any>("/lol-lobby/v2/lobby");
     const search = useLcuObserve<any>("/lol-matchmaking/v1/search");
     const [queueName, setQueueName] = useState("");
@@ -34,7 +36,7 @@ export default function Lobby() {
 
     return (
         <div className="screen lobby-screen fade-in">
-            <h1 className="screen-title">{queueName || "Lobby"}</h1>
+            <h1 className="screen-title">{queueName || t("lobby.title")}</h1>
             <p className="screen-subtitle">{gameModeName(config.mapId, config.gameMode)}</p>
 
             <div className="lobby-members">
@@ -56,14 +58,14 @@ export default function Lobby() {
                         className="lcu-button confirm"
                         disabled={!!isSearching}
                         onClick={() => lcu.post("/lol-lobby/v2/lobby/matchmaking/search")}>
-                        Find Match
+                        {t("lobby.findMatch")}
                     </button>
                 )}
                 <button className="lcu-button" onClick={() => setShowInvites(true)}>
-                    Invite Players
+                    {t("lobby.invitePlayers")}
                 </button>
                 <button className="lcu-button deny" onClick={() => lcu.del("/lol-lobby/v2/lobby")}>
-                    Leave Lobby
+                    {t("lobby.leave")}
                 </button>
             </div>
 

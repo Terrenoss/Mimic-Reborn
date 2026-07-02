@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { lcu } from "../../lib/lcu";
 import { POSITION_NAMES, profileIconUrl } from "../../lib/static-data";
+import { useT } from "../../lib/i18n";
 import { roleImage } from "./roles";
 
 export default function LobbyMember(props: {
@@ -11,6 +12,7 @@ export default function LobbyMember(props: {
     onPickRoles: () => void;
 }) {
     const { member, isLocal, localIsLeader, showPositions } = props;
+    const t = useT();
     const [icon, setIcon] = useState<string | null>(null);
     const [showActions, setShowActions] = useState(false);
 
@@ -48,7 +50,7 @@ export default function LobbyMember(props: {
                         {second && second !== "UNSELECTED" && first !== "FILL" && (
                             <img src={roleImage(second)} alt={POSITION_NAMES[second] ?? second} />
                         )}
-                        {isLocal && <span className="member-roles-edit">edit</span>}
+                        {isLocal && <span className="member-roles-edit">{t("lobby.roles.edit")}</span>}
                     </span>
                 )}
             </div>
@@ -56,17 +58,17 @@ export default function LobbyMember(props: {
             {showActions && !isLocal && localIsLeader && (
                 <div className="member-actions">
                     <button className="lcu-button" onClick={() => lcu.post(`/lol-lobby/v2/lobby/members/${member.summonerId}/promote`)}>
-                        Promote
+                        {t("lobby.member.promote")}
                     </button>
                     <button
                         className="lcu-button"
                         onClick={() =>
                             lcu.post(`/lol-lobby/v2/lobby/members/${member.summonerId}/${member.allowedInviteOthers ? "revoke-invite" : "grant-invite"}`)
                         }>
-                        {member.allowedInviteOthers ? "Revoke Invite" : "Allow Invite"}
+                        {member.allowedInviteOthers ? t("lobby.member.revokeInvite") : t("lobby.member.allowInvite")}
                     </button>
                     <button className="lcu-button deny" onClick={() => lcu.post(`/lol-lobby/v2/lobby/members/${member.summonerId}/kick`)}>
-                        Kick
+                        {t("lobby.member.kick")}
                     </button>
                 </div>
             )}

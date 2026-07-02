@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
+import { useT } from "../../lib/i18n";
 import mapSr from "../../assets/maps/sr-default.png";
 import mapSrActive from "../../assets/maps/sr-active.png";
 import mapHa from "../../assets/maps/ha-default.png";
@@ -25,6 +26,7 @@ const SECTIONS: Section[] = [
 ];
 
 export default function CreateLobby() {
+    const t = useT();
     const queues = useLcuObserve<any[]>("/lol-game-queues/v1/queues");
     const [sectionId, setSectionId] = useState("sr");
     const [selectedQueue, setSelectedQueue] = useState<number | null>(null);
@@ -51,8 +53,8 @@ export default function CreateLobby() {
 
     return (
         <div className="screen lobby-screen fade-in">
-            <h1 className="screen-title">Play</h1>
-            <p className="screen-subtitle">Choose a game mode</p>
+            <h1 className="screen-title">{t("play.title")}</h1>
+            <p className="screen-subtitle">{t("play.subtitle")}</p>
 
             <div className="create-lobby-maps">
                 {sections.map(section => (
@@ -78,7 +80,7 @@ export default function CreateLobby() {
                         {queue.description || queue.shortName}
                     </button>
                 ))}
-                {!queues && <p className="create-lobby-loading">Loading queues...</p>}
+                {!queues && <p className="create-lobby-loading">{t("play.loading")}</p>}
             </div>
 
             <div className="lobby-actions">
@@ -86,7 +88,7 @@ export default function CreateLobby() {
                     className="lcu-button confirm"
                     disabled={selectedQueue == null}
                     onClick={() => lcu.post("/lol-lobby/v2/lobby", { queueId: selectedQueue })}>
-                    Create Lobby
+                    {t("play.create")}
                 </button>
             </div>
         </div>

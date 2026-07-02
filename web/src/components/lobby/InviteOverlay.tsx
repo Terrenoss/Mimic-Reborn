@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
+import { useT } from "../../lib/i18n";
 
 export default function InviteOverlay(props: { onClose: () => void }) {
     const suggested = useLcuObserve<any[]>("/lol-suggested-players/v1/suggested-players");
     const [name, setName] = useState("");
     const [feedback, setFeedback] = useState("");
     const [invited, setInvited] = useState<Set<number>>(new Set());
+    const t = useT();
 
     const invite = async (summonerId: number) => {
         await lcu.post("/lol-lobby/v2/lobby/invitations", [{ toSummonerId: summonerId }]);
@@ -16,22 +18,22 @@ export default function InviteOverlay(props: { onClose: () => void }) {
         if (!name.trim()) return;
         const result = await lcu.get(`/lol-summoner/v1/summoners?name=${encodeURIComponent(name.trim())}`);
         if (result.status !== 200) {
-            setFeedback(`Could not find "${name.trim()}".`);
+            setFeedback(t("invite.notFound", { name: name.trim() }));
             return;
         }
         await invite(result.content.summonerId);
-        setFeedback(`Invited ${name.trim()}!`);
+        setFeedback(t("invite.success", { name: name.trim() }));
         setName("");
     };
 
     return (
         <div className="overlay fade-in invite-overlay">
-            <h2 className="screen-title">Invite Players</h2>
+            <h2 className="screen-title">{t("invite.title")}</h2>
 
             <div className="invite-search">
                 <input
                     value={name}
-                    placeholder="Summoner name..."
+                    placeholder={t("invite.placeholder")}
                     onChange={e => {
                         setName(e.target.value);
                         setFeedback("");
@@ -39,7 +41,7 @@ export default function InviteOverlay(props: { onClose: () => void }) {
                     onKeyDown={e => e.key === "Enter" && inviteByName()}
                 />
                 <button className="lcu-button" onClick={inviteByName}>
-                    Invite
+                    {t("invite.action")}
                 </button>
             </div>
             {feedback && <p className="invite-feedback">{feedback}</p>}
@@ -52,16 +54,16 @@ export default function InviteOverlay(props: { onClose: () => void }) {
                             className="lcu-button"
                             disabled={invited.has(player.summonerId)}
                             onClick={() => invite(player.summonerId)}>
-                            {invited.has(player.summonerId) ? "Invited" : "Invite"}
+                            {invited.has(player.summonerId) ? t("invite.invited") : t("invite.action")}
                         </button>
                     </div>
                 ))}
-                {suggested?.length === 0 && <p className="invite-feedback">No recent players to suggest.</p>}
+                {suggested?.length === 0 && <p className="invite-feedback">{t("invite.noSuggestions")}</p>}
             </div>
 
             <div className="lobby-actions">
                 <button className="lcu-button" onClick={props.onClose}>
-                    Close
+                    {t("invite.close")}
                 </button>
             </div>
         </div>

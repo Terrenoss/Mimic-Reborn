@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { POSITION_NAMES } from "../../lib/static-data";
+import { useT } from "../../lib/i18n";
 import { roleImage, SELECTABLE_ROLES } from "./roles";
 
 export default function RolePicker(props: {
@@ -10,6 +11,7 @@ export default function RolePicker(props: {
     const [first, setFirst] = useState<string>(props.current.firstPositionPreference || "UNSELECTED");
     const [second, setSecond] = useState<string>(props.current.secondPositionPreference || "UNSELECTED");
     const [picking, setPicking] = useState<"first" | "second">("first");
+    const t = useT();
 
     const pick = (role: string) => {
         if (picking === "first") {
@@ -25,19 +27,19 @@ export default function RolePicker(props: {
 
     return (
         <div className="overlay fade-in role-picker">
-            <h2 className="screen-title">Choose your positions</h2>
+            <h2 className="screen-title">{t("roles.title")}</h2>
 
             <div className="role-picker-slots">
                 <button className={"role-slot" + (picking === "first" ? " active" : "")} onClick={() => setPicking("first")}>
                     <img src={roleImage(first)} alt="" />
-                    <span>Primary: {POSITION_NAMES[first]}</span>
+                    <span>{t("roles.primary", { role: POSITION_NAMES[first] })}</span>
                 </button>
                 <button
                     className={"role-slot" + (picking === "second" ? " active" : "")}
                     disabled={first === "FILL"}
                     onClick={() => setPicking("second")}>
                     <img src={roleImage(second)} alt="" />
-                    <span>Secondary: {POSITION_NAMES[second]}</span>
+                    <span>{t("roles.secondary", { role: POSITION_NAMES[second] })}</span>
                 </button>
             </div>
 
@@ -55,10 +57,10 @@ export default function RolePicker(props: {
 
             <div className="lobby-actions">
                 <button className="lcu-button confirm" disabled={!valid} onClick={() => props.onSelect(first, second)}>
-                    Confirm
+                    {t("roles.confirm")}
                 </button>
                 <button className="lcu-button" onClick={props.onClose}>
-                    Cancel
+                    {t("roles.cancel")}
                 </button>
             </div>
         </div>

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
 import { gameModeName } from "../../lib/static-data";
+import { useT } from "../../lib/i18n";
 import "./invites.css";
 
 function Invite({ invite }: { invite: any }) {
     const [queueName, setQueueName] = useState("");
+    const t = useT();
 
     useEffect(() => {
         const queueId = invite.gameConfig?.queueId;
@@ -22,18 +24,18 @@ function Invite({ invite }: { invite: any }) {
         <div className="invite-card fade-in">
             <div className="invite-card-text">
                 <span className="invite-card-name">{invite.fromSummonerName}</span>
-                <span className="invite-card-queue">invites you to {queueName || mode}</span>
+                <span className="invite-card-queue">{t("invites.invitesYou", { queue: queueName || mode })}</span>
             </div>
             <div className="invite-card-buttons">
                 <button
                     className="lcu-button confirm"
                     onClick={() => lcu.post(`/lol-lobby/v2/received-invitations/${invite.invitationId}/accept`)}>
-                    Accept
+                    {t("invites.accept")}
                 </button>
                 <button
                     className="lcu-button deny"
                     onClick={() => lcu.post(`/lol-lobby/v2/received-invitations/${invite.invitationId}/decline`)}>
-                    Decline
+                    {t("invites.decline")}
                 </button>
             </div>
         </div>

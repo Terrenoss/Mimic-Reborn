@@ -1,0 +1,49 @@
+name: Release
+
+# Push a tag like v3.1.0 to build and publish MimicConduit.exe as a GitHub
+# Release. Conduit's UpdateChecker polls the latest release at startup, so
+# this workflow is what makes auto-update work end to end.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Build web UI
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Embed web UI into Conduit
+        run: Copy-Item -Recurse web/dist conduit/wwwroot
+
+      - name: Publish Conduit (single-file exe)
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          dotnet publish conduit/Conduit.csproj -c Release -r win-x64 --self-contained `
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:Version=$version -o publish
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: publish/MimicConduit.exe
+          generate_release_notes: true

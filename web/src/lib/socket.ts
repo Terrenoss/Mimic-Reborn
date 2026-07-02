@@ -32,9 +32,13 @@ export interface LcuResult {
 
 type Observer = { regex: RegExp; handler: (result: LcuResult) => void };
 
+const RECONNECT_DELAYS_MS = [1000, 2000, 4000, 8000, 15000];
+
 /**
  * Encrypted websocket connection to Conduit. Exposes the same three primitives
- * the old Vue root component had: request, observe and unobserve.
+ * the old Vue root component had: request, observe and unobserve. Reconnects
+ * automatically with backoff (and instantly when the tab becomes visible),
+ * re-subscribing all observers after each successful handshake.
  */
 export class ConduitSocket {
     state: ConnectionState = ConnectionState.IDLE;
@@ -47,21 +51,35 @@ export class ConduitSocket {
     private idCounter = 0;
     private pendingRequests = new Map<number, (result: LcuResult) => void>();
     private observers = new Map<string, Observer>();
+    private reconnectAttempt = 0;
+    private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    private manuallyClosed = false;
+
+    constructor() {
+        // Phones aggressively kill sockets of backgrounded tabs; coming back to
+        // the app is the moment users expect it to just work again.
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible" && this.shouldReconnect()) {
+                this.connect();
+            }
+        });
+    }
 
     connect(host: string = window.location.host) {
+        if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+        }
+        if (this.socket && (this.state === ConnectionState.CONNECTING || this.state === ConnectionState.CONNECTED)) return;
+
         const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+        this.manuallyClosed = false;
         this.setState(ConnectionState.CONNECTING);
 
         this.crypto = new SessionCrypto();
         this.socket = new WebSocket(`${protocol}://${host}/mobile`);
         this.socket.onmessage = ev => this.handleMessage(ev.data);
-        this.socket.onclose = () => {
-            if (this.state !== ConnectionState.DENIED) {
-                this.setState(this.state === ConnectionState.CONNECTED
-                    ? ConnectionState.DISCONNECTED
-                    : ConnectionState.IDLE);
-            }
-        };
+        this.socket.onclose = () => this.handleClose();
         this.socket.onerror = () => this.socket?.close();
     }
 
@@ -80,8 +98,10 @@ export class ConduitSocket {
     observe(path: string, handler: (result: LcuResult) => void) {
         const pattern = `^${path}$`;
         this.observers.set(path, { regex: new RegExp(pattern), handler });
-        this.sendEncrypted([MobileOpcode.SUBSCRIBE, pattern]);
-        this.request(path).then(handler);
+        if (this.state === ConnectionState.CONNECTED) {
+            this.sendEncrypted([MobileOpcode.SUBSCRIBE, pattern]);
+            this.request(path).then(handler);
+        }
     }
 
     unobserve(path: string) {
@@ -90,9 +110,33 @@ export class ConduitSocket {
     }
 
     close() {
+        this.manuallyClosed = true;
+        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
         this.socket?.close();
         this.socket = null;
         this.setState(ConnectionState.IDLE);
+    }
+
+    private shouldReconnect(): boolean {
+        return !this.manuallyClosed
+            && this.state !== ConnectionState.CONNECTED
+            && this.state !== ConnectionState.CONNECTING
+            && this.state !== ConnectionState.HANDSHAKING
+            && this.state !== ConnectionState.DENIED;
+    }
+
+    private handleClose() {
+        this.socket = null;
+        this.pendingRequests.clear();
+        if (this.manuallyClosed || this.state === ConnectionState.DENIED) return;
+
+        this.setState(this.state === ConnectionState.CONNECTED || this.state === ConnectionState.DISCONNECTED
+            ? ConnectionState.DISCONNECTED
+            : ConnectionState.IDLE);
+
+        const delay = RECONNECT_DELAYS_MS[Math.min(this.reconnectAttempt, RECONNECT_DELAYS_MS.length - 1)];
+        this.reconnectAttempt++;
+        this.reconnectTimer = setTimeout(() => this.connect(), delay);
     }
 
     private handleMessage(raw: string) {
@@ -131,7 +175,13 @@ export class ConduitSocket {
             }
             case MobileOpcode.SECRET_RESPONSE: {
                 if (parsed[1] === true) {
+                    this.reconnectAttempt = 0;
                     this.setState(ConnectionState.CONNECTED);
+                    // Restore every active observation on the fresh session.
+                    for (const [path, { handler }] of this.observers) {
+                        this.sendEncrypted([MobileOpcode.SUBSCRIBE, `^${path}$`]);
+                        this.request(path).then(handler);
+                    }
                 } else {
                     this.setState(ConnectionState.DENIED);
                     this.socket?.close();

@@ -1,10 +1,12 @@
 import { lcu, useLcuObserve } from "../../lib/lcu";
 import { summonerSpellUrl } from "../../lib/static-data";
+import { useT } from "../../lib/i18n";
 import { useChampSelect } from "./ChampSelect";
 
 export default function PlayerSettings() {
     const { session, localPlayer, summonerSpells, ddragonVersion, openOverlay } = useChampSelect();
     const rerollPoints = useLcuObserve<any>("/lol-summoner/v1/current-summoner/rerollPoints");
+    const t = useT();
 
     const spell1 = summonerSpells[localPlayer.spell1Id];
     const spell2 = summonerSpells[localPlayer.spell2Id];
@@ -16,15 +18,15 @@ export default function PlayerSettings() {
             <button className="cs-settings-button" onClick={() => openOverlay("spells")}>
                 {spell1 && <img src={summonerSpellUrl(ddragonVersion, spell1.id)} alt="" />}
                 {spell2 && <img src={summonerSpellUrl(ddragonVersion, spell2.id)} alt="" />}
-                <span>Spells</span>
+                <span>{t("cs.spells")}</span>
             </button>
 
             <button className="cs-settings-button" onClick={() => openOverlay("runes")}>
-                <span>Runes</span>
+                <span>{t("cs.runes")}</span>
             </button>
 
             <button className="cs-settings-button" disabled={!hasChampion} onClick={() => openOverlay("skins")}>
-                <span>Skins</span>
+                <span>{t("cs.skins")}</span>
             </button>
 
             {session.benchEnabled && (
@@ -32,7 +34,7 @@ export default function PlayerSettings() {
                     className="cs-settings-button"
                     disabled={!canReroll}
                     onClick={() => lcu.post("/lol-champ-select/v1/session/my-selection/reroll")}>
-                    <span>Reroll{rerollPoints ? ` (${rerollPoints.numberOfRolls})` : ""}</span>
+                    <span>{t("cs.reroll")}{rerollPoints ? ` (${rerollPoints.numberOfRolls})` : ""}</span>
                 </button>
             )}
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
+import { useT } from "../../lib/i18n";
 import queuePopSound from "../../assets/queue-pop.mp3";
 import "./ready-check.css";
 
@@ -7,6 +8,7 @@ export default function ReadyCheck() {
     const readyCheck = useLcuObserve<any>("/lol-matchmaking/v1/ready-check");
     const [answered, setAnswered] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const t = useT();
 
     const active = readyCheck != null && readyCheck.state === "InProgress";
 
@@ -30,7 +32,7 @@ export default function ReadyCheck() {
 
     return (
         <div className="overlay fade-in ready-check">
-            <h1 className="ready-check-title">Match Found!</h1>
+            <h1 className="ready-check-title">{t("readyCheck.title")}</h1>
             <div className="ready-check-progress">
                 <div className="ready-check-progress-fill" style={{ width: `${100 - progress}%` }} />
             </div>
@@ -42,7 +44,7 @@ export default function ReadyCheck() {
                         setAnswered(true);
                         lcu.post("/lol-matchmaking/v1/ready-check/accept");
                     }}>
-                    Accept
+                    {t("readyCheck.accept")}
                 </button>
                 <button
                     className="lcu-button deny"
@@ -51,7 +53,7 @@ export default function ReadyCheck() {
                         setAnswered(true);
                         lcu.post("/lol-matchmaking/v1/ready-check/decline");
                     }}>
-                    Decline
+                    {t("readyCheck.decline")}
                 </button>
             </div>
         </div>
