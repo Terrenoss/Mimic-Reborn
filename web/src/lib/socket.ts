@@ -1,5 +1,6 @@
 import { SessionCrypto } from "./crypto";
 import { getDeviceDescription, getDeviceId } from "./device";
+import { getDefaultHost } from "./native";
 
 // Opcodes shared with conduit/MobileSession.cs. 3-9 are inherited from Mimic v2;
 // 0-1 are the LAN-direct ECDH handshake.
@@ -54,6 +55,7 @@ export class ConduitSocket {
     private reconnectAttempt = 0;
     private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     private manuallyClosed = false;
+    private lastHost: string | null = null;
 
     constructor() {
         // Phones aggressively kill sockets of backgrounded tabs; coming back to
@@ -65,7 +67,11 @@ export class ConduitSocket {
         });
     }
 
-    connect(host: string = window.location.host) {
+    connect(host?: string) {
+        host ??= this.lastHost ?? getDefaultHost() ?? undefined;
+        if (!host) return; // native first run: no PC address known yet
+        this.lastHost = host;
+
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);
             this.reconnectTimer = null;

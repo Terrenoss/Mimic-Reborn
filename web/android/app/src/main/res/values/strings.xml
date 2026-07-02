@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Mimic</string>
+    <string name="title_activity_main">Mimic</string>
+    <string name="package_name">app.mimicreborn</string>
+    <string name="custom_url_scheme">app.mimicreborn</string>
+</resources>

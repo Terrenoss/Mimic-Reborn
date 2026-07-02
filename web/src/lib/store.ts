@@ -3,7 +3,7 @@ import { ConnectionState, socket } from "./socket";
 
 interface ConnectionStore {
     state: ConnectionState;
-    connect: () => void;
+    connect: (host?: string) => void;
     disconnect: () => void;
 }
 
@@ -12,7 +12,7 @@ export const useConnection = create<ConnectionStore>(set => {
 
     return {
         state: ConnectionState.IDLE,
-        connect: () => socket.connect(),
+        connect: (host?: string) => socket.connect(host),
         disconnect: () => socket.close()
     };
 });

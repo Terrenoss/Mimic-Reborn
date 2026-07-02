@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
-import { useT } from "../../lib/i18n";
+import { useT, t as translate } from "../../lib/i18n";
+import { notify } from "../../lib/native";
 import queuePopSound from "../../assets/queue-pop.mp3";
 import "./ready-check.css";
 
@@ -19,6 +20,11 @@ export default function ReadyCheck() {
         }
 
         navigator.vibrate?.([200, 100, 200]);
+        // System notification for phones where the app is in the background
+        // (native builds only; no-op in the browser).
+        if (document.visibilityState !== "visible") {
+            notify(translate("notif.queuePop.title"), translate("notif.queuePop.body"));
+        }
         audioRef.current ??= new Audio(queuePopSound);
         audioRef.current.play().catch(() => {
             // Autoplay blocked before any user gesture; vibration still fires.

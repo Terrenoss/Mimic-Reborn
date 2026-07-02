@@ -25,6 +25,17 @@
     line-height: 1.5;
 }
 
+.connect-host {
+    background: var(--blue-panel);
+    border: 1px solid var(--gold-dark);
+    color: var(--text-bright);
+    padding: 12px;
+    font-size: 1rem;
+    width: min(320px, 85vw);
+    text-align: center;
+    outline: none;
+}
+
 .connect-locale {
     position: absolute;
     bottom: calc(var(--safe-bottom) + 16px);

@@ -11,6 +11,12 @@ export const en = {
     "connect.lost.title": "Connection lost",
     "connect.lost.text": "The connection to your computer was lost. Reconnecting...",
     "connect.retry": "Retry",
+    "connect.host.placeholder": "PC address (e.g. 192.168.0.33)",
+    "connect.host.connect": "Connect",
+
+    // Notifications
+    "notif.queuePop.title": "Match Found!",
+    "notif.queuePop.body": "Your game is ready — open Mimic to accept.",
 
     // Lobby
     "lobby.title": "Lobby",

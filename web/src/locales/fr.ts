@@ -13,6 +13,12 @@ export const fr: Messages = {
     "connect.lost.title": "Connexion perdue",
     "connect.lost.text": "La connexion avec ton ordinateur a été perdue. Reconnexion...",
     "connect.retry": "Réessayer",
+    "connect.host.placeholder": "Adresse du PC (ex. 192.168.0.33)",
+    "connect.host.connect": "Se connecter",
+
+    // Notifications
+    "notif.queuePop.title": "Partie trouvée !",
+    "notif.queuePop.body": "Ta partie est prête — ouvre Mimic pour accepter.",
 
     // Lobby
     "lobby.title": "Salon",
