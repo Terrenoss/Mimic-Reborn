@@ -7,7 +7,7 @@ name: Android APK
 # release keystore as repository secrets and a signing step.
 on:
   push:
-    branches: [master, reborn]
+    branches: [master]
     paths: ["web/**", ".github/workflows/android.yml"]
     tags: ["v*"]
   workflow_dispatch:
