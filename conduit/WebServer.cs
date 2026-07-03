@@ -54,11 +54,18 @@ public class WebServer
             {
                 name = MimicConfig.AppName,
                 version = MimicConfig.Version,
+                apkVersion = ApkCache.ApkVersion,
                 machine = Environment.MachineName,
                 leagueConnected = _league.IsConnected,
                 lanUrl = GetLanUrl()
             });
         });
+
+        // Latest released APK, cached locally — lets phones update over LAN.
+        app.MapGet("/apk", () =>
+            File.Exists(ApkCache.ApkPath)
+                ? Results.File(ApkCache.ApkPath, "application/vnd.android.package-archive", "Mimic.apk")
+                : Results.NotFound());
 
         app.Map("/mobile", async context =>
         {

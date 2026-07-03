@@ -81,3 +81,29 @@
     color: var(--red);
     line-height: 1.4;
 }
+
+.update-banner {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+    z-index: 150;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    background: var(--blue-panel);
+    border: 1px solid var(--gold);
+    font-size: 0.85rem;
+    color: var(--text-bright);
+}
+
+.update-banner-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.update-banner-actions .lcu-button {
+    flex: 1;
+    padding: 8px;
+}

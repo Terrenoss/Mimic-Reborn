@@ -23,8 +23,15 @@ export const fr: Messages = {
     "connect.host.connect": "Se connecter",
 
     // Notifications
+    "notif.queue.title": "En file d'attente",
+    "notif.queue.body": "{time} écoulées — estimé {estimated}",
     "notif.queuePop.title": "Partie trouvée !",
     "notif.queuePop.body": "Ta partie est prête — ouvre Mimic pour accepter.",
+
+    // Mise à jour
+    "update.available": "Mimic {version} est disponible sur ton PC.",
+    "update.download": "Mettre à jour",
+    "update.later": "Plus tard",
 
     // Lobby
     "lobby.title": "Salon",
@@ -126,6 +133,13 @@ export const fr: Messages = {
     "runes.recommended": "Recommandées (Riot)",
     "runes.apply": "Appliquer",
     "runes.applied": "Appliquée ✓",
+
+    // Chat
+    "chat.title": "Chat",
+    "chat.you": "Toi",
+    "chat.empty": "Aucun message pour l'instant.",
+    "chat.placeholder": "Message...",
+    "chat.send": "Envoyer",
 
     // Réglages
     "settings.language": "Langue"

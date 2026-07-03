@@ -6,6 +6,7 @@ import CreateLobby from "./CreateLobby";
 import LobbyMember from "./LobbyMember";
 import RolePicker from "./RolePicker";
 import InviteOverlay from "./InviteOverlay";
+import Chat from "../chat/Chat";
 import "./lobby.css";
 
 export default function Lobby() {
@@ -83,6 +84,7 @@ export default function Lobby() {
                 />
             )}
             {showInvites && <InviteOverlay onClose={() => setShowInvites(false)} />}
+            <Chat types={["lobby", "customGame"]} className="in-lobby" />
         </div>
     );
 }

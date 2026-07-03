@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
 import { useT, t as translate } from "../../lib/i18n";
-import { notify } from "../../lib/native";
+import { cancelQueueNotification, notify } from "../../lib/native";
 import queuePopSound from "../../assets/queue-pop.mp3";
 import "./ready-check.css";
 
@@ -19,6 +19,7 @@ export default function ReadyCheck() {
             return;
         }
 
+        cancelQueueNotification();
         navigator.vibrate?.([200, 100, 200]);
         // System notification for phones where the app is in the background
         // (native builds only; no-op in the browser).

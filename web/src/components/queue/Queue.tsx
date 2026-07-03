@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
-import { useT } from "../../lib/i18n";
+import { useT, t as translate } from "../../lib/i18n";
+import { cancelQueueNotification, showQueueNotification } from "../../lib/native";
 import "./queue.css";
 
 function formatSeconds(total: number): string {
@@ -20,8 +21,24 @@ export default function Queue() {
         if (!inQueue) return;
         setElapsed(search.timeInQueue ?? 0);
         const interval = setInterval(() => setElapsed(v => v + 1), 1000);
-        return () => clearInterval(interval);
+        return () => {
+            clearInterval(interval);
+            cancelQueueNotification();
+        };
     }, [inQueue]);
+
+    // Persistent status notification while queued, refreshed every 15s
+    // (silent channel, so updates never buzz).
+    useEffect(() => {
+        if (!inQueue || elapsed % 15 !== 0) return;
+        showQueueNotification(
+            translate("notif.queue.title"),
+            translate("notif.queue.body", {
+                time: formatSeconds(elapsed),
+                estimated: formatSeconds(search.estimatedQueueTime ?? 0)
+            })
+        );
+    }, [inQueue, elapsed]);
 
     if (!inQueue) return null;
 

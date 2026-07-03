@@ -1,11 +1,15 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { version } from "./package.json";
 
 // In dev, the UI is served by Vite but the websocket is proxied to a locally
 // running Conduit. In production, Conduit serves the built files itself so
 // everything is same-origin.
 export default defineConfig({
     plugins: [react()],
+    define: {
+        __APP_VERSION__: JSON.stringify(version)
+    },
     server: {
         proxy: {
             "/mobile": {

@@ -29,6 +29,54 @@ export async function notify(title: string, body: string) {
     }
 }
 
+// Persistent "in queue" notification: one fixed id, updated in place, on a
+// silent low-importance channel so refreshes never buzz.
+const QUEUE_NOTIFICATION_ID = 1000;
+let queueChannelReady = false;
+
+async function ensureQueueChannel() {
+    if (queueChannelReady) return;
+    try {
+        await LocalNotifications.createChannel({
+            id: "queue",
+            name: "Queue status",
+            importance: 2
+        });
+        queueChannelReady = true;
+    } catch {
+        // Channel API unavailable (old Android); default channel will be used.
+        queueChannelReady = true;
+    }
+}
+
+export async function showQueueNotification(title: string, body: string) {
+    if (!isNative) return;
+    try {
+        await ensureQueueChannel();
+        await LocalNotifications.schedule({
+            notifications: [{
+                id: QUEUE_NOTIFICATION_ID,
+                title,
+                body,
+                ongoing: true,
+                autoCancel: false,
+                channelId: "queue"
+            }]
+        });
+    } catch {
+        // Permission missing — the in-app timer is still visible.
+    }
+}
+
+export async function cancelQueueNotification() {
+    if (!isNative) return;
+    try {
+        await LocalNotifications.cancel({ notifications: [{ id: QUEUE_NOTIFICATION_ID }] });
+    } catch {
+        // Nothing to cancel.
+    }
+}
+
 /**
  * Opens the system QR scanner (Google code scanner — no camera permission
  * needed) and returns the scanned text, or null if cancelled/unavailable.

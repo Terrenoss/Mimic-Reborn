@@ -58,6 +58,7 @@ public class TrayContext : ApplicationContext
         _league.Start();
         _ = StartServerAsync();
         _ = NotifyOnUpdateAsync();
+        _ = ApkCache.RefreshAsync();
 
         _tray.ShowBalloonTip(5000, MimicConfig.AppName,
             $"Mimic is running. Open {WebServer.GetLanUrl()} on your phone, or click this icon for a QR code.",

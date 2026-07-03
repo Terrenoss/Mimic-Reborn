@@ -9,6 +9,7 @@ import SummonerPicker from "./SummonerPicker";
 import SkinPicker from "./SkinPicker";
 import Bench from "./Bench";
 import RuneEditor from "./RuneEditor";
+import Chat from "../chat/Chat";
 import magicBackground from "../../assets/magic-background.jpg";
 import "./champ-select.css";
 
@@ -108,6 +109,7 @@ export default function ChampSelect() {
                 {overlay === "spells" && <SummonerPicker onClose={() => setOverlay("none")} />}
                 {overlay === "skins" && <SkinPicker onClose={() => setOverlay("none")} />}
                 {overlay === "runes" && <RuneEditor onClose={() => setOverlay("none")} />}
+                {overlay === "none" && <Chat types={["championSelect"]} className="in-champ-select" />}
             </div>
         </Context.Provider>
     );

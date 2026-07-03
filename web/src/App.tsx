@@ -4,6 +4,7 @@ import { useConnection } from "./lib/store";
 import { keepAwake } from "./lib/native";
 import { useT } from "./lib/i18n";
 import ConnectScreen from "./components/connect/ConnectScreen";
+import UpdateBanner from "./components/connect/UpdateBanner";
 import Lobby from "./components/lobby/Lobby";
 import Invites from "./components/invites/Invites";
 import Queue from "./components/queue/Queue";
@@ -74,6 +75,7 @@ export default function App() {
     return (
         <>
             {reconnecting && <div className="reconnect-banner">{t("connect.reconnecting")}</div>}
+            <UpdateBanner />
             <Lobby />
             <Invites />
             <Queue />
