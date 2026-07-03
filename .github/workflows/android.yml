@@ -43,11 +43,30 @@ jobs:
 
       - name: Restore signing keystore
         if: env.HAS_KEYSTORE == 'true'
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > $HOME/release.keystore
+          # Strip any whitespace/newlines that sneak in when secrets are pasted.
+          printf '%s' "$KS_B64" | tr -d '[:space:]' | base64 -d > $HOME/release.keystore
+          PW="$(printf '%s' "$KS_PASSWORD" | tr -d '[:space:]')"
+          ALIAS="$(printf '%s' "$KS_ALIAS" | tr -d '[:space:]')"
           echo "ANDROID_KEYSTORE_PATH=$HOME/release.keystore" >> $GITHUB_ENV
-          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
-          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "ANDROID_KEYSTORE_PASSWORD=$PW" >> $GITHUB_ENV
+          echo "ANDROID_KEY_ALIAS=$ALIAS" >> $GITHUB_ENV
+
+      - name: Verify keystore and password
+        if: env.HAS_KEYSTORE == 'true'
+        run: |
+          echo "keystore sha256 : $(sha256sum $HOME/release.keystore | cut -d' ' -f1)"
+          echo "password length : ${#ANDROID_KEYSTORE_PASSWORD} (expected: 32)"
+          echo "alias length    : ${#ANDROID_KEY_ALIAS} (expected: 5)"
+          if ! keytool -list -keystore "$HOME/release.keystore" -storepass "$ANDROID_KEYSTORE_PASSWORD" > /dev/null 2>&1; then
+            echo "::error::Keystore/password mismatch. Compare the sha256 above with the local keystore and re-paste ANDROID_KEYSTORE_PASSWORD."
+            exit 1
+          fi
+          echo "Keystore check: OK"
 
       - name: Build APK (signed release if keystore configured, else debug)
         working-directory: web/android
