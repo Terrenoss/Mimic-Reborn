@@ -61,9 +61,12 @@ jobs:
         run: |
           echo "keystore sha256 : $(sha256sum $HOME/release.keystore | cut -d' ' -f1)"
           echo "password length : ${#ANDROID_KEYSTORE_PASSWORD} (expected: 32)"
+          echo "password sha256 : $(printf '%s' "$ANDROID_KEYSTORE_PASSWORD" | sha256sum | cut -d' ' -f1)"
+          echo "                  (expected: 00969ced415a2b1f791aeccfb7e4d99cab7bf14d65c1e424820ca9e609608bef)"
           echo "alias length    : ${#ANDROID_KEY_ALIAS} (expected: 5)"
-          if ! keytool -list -keystore "$HOME/release.keystore" -storepass "$ANDROID_KEYSTORE_PASSWORD" > /dev/null 2>&1; then
-            echo "::error::Keystore/password mismatch. Compare the sha256 above with the local keystore and re-paste ANDROID_KEYSTORE_PASSWORD."
+          echo "--- keytool output:"
+          if ! keytool -list -keystore "$HOME/release.keystore" -storepass "$ANDROID_KEYSTORE_PASSWORD"; then
+            echo "::error::Keystore/password check failed — see keytool output above."
             exit 1
           fi
           echo "Keystore check: OK"
