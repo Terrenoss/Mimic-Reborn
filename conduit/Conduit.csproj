@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Conduit</RootNamespace>
     <AssemblyName>MimicConduit</AssemblyName>
-    <Version>3.0.0</Version>
+    <Version>3.1.0</Version>
     <ApplicationIcon>mimic.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- Publish (single self-contained exe): see publish.ps1 at the repo root. -->

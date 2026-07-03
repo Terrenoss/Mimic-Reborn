@@ -17,7 +17,9 @@ export default function Chat(props: { types: string[]; className?: string }) {
     const [conversation, setConversation] = useState<any>(null);
     const [messages, setMessages] = useState<any[]>([]);
     const [open, setOpen] = useState(false);
-    const [seen, setSeen] = useState(0);
+    // null until the first message batch loads: pre-existing history must not
+    // count as unread.
+    const [seen, setSeen] = useState<number | null>(null);
     const [draft, setDraft] = useState("");
     const [selfId, setSelfId] = useState<number | null>(null);
     const listRef = useRef<HTMLDivElement>(null);
@@ -54,6 +56,7 @@ export default function Chat(props: { types: string[]; className?: string }) {
     useEffect(() => {
         if (!conversation) {
             setMessages([]);
+            setSeen(null);
             return;
         }
         let cancelled = false;
@@ -70,11 +73,14 @@ export default function Chat(props: { types: string[]; className?: string }) {
         };
     }, [conversation?.id, open]);
 
-    // While open, everything is considered read; scroll follows new messages.
+    // First batch sets the baseline; while open, everything is considered
+    // read and the scroll follows new messages.
     useEffect(() => {
         if (open) {
             setSeen(messages.length);
             listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
+        } else {
+            setSeen(prev => prev ?? messages.length);
         }
     }, [open, messages.length]);
 
@@ -82,7 +88,7 @@ export default function Chat(props: { types: string[]; className?: string }) {
 
     if (!conversation) return null;
 
-    const unread = Math.max(0, messages.length - seen);
+    const unread = seen == null ? 0 : Math.max(0, messages.length - seen);
 
     const send = async () => {
         const body = draft.trim();
