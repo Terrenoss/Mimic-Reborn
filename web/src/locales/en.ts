@@ -109,6 +109,7 @@ export const en = {
     "spells.none": "None",
     "skins.title": "{champion} Skins",
     "skins.loading": "Loading skins...",
+    "skins.wards": "Ward skins",
     "runes.title": "Runes",
     "runes.loading": "Loading runes...",
     "runes.noPage": "No editable rune page — creating one...",

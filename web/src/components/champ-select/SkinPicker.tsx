@@ -4,9 +4,16 @@ import { splashUrl } from "../../lib/static-data";
 import { useT } from "../../lib/i18n";
 import { useChampSelect } from "./ChampSelect";
 
+/** CommunityDragon mirror of an LCU asset path like /lol-game-data/assets/... */
+function wardImageUrl(wardImagePath: string): string {
+    const path = wardImagePath.replace(/^\/lol-game-data\/assets/i, "").toLowerCase();
+    return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default${path}`;
+}
+
 export default function SkinPicker(props: { onClose: () => void }) {
     const { localPlayer, champions } = useChampSelect();
     const [skins, setSkins] = useState<any[]>([]);
+    const [wardSkins, setWardSkins] = useState<any[]>([]);
     const t = useT();
 
     const champion = champions[localPlayer.championId];
@@ -24,18 +31,39 @@ export default function SkinPicker(props: { onClose: () => void }) {
         });
     }, [localPlayer.championId]);
 
+    // Owned ward skins: catalog from the LCU's static data, ownership from the
+    // inventory service (endpoint moved across client versions, so try both).
+    useEffect(() => {
+        (async () => {
+            const catalog = await lcu.get("/lol-game-data/assets/v1/ward-skins.json");
+            if (catalog.status !== 200 || !Array.isArray(catalog.content)) return;
+            for (const path of ["/lol-inventory/v2/inventory/WARD_SKIN", "/lol-inventory/v1/inventory/WARD_SKIN"]) {
+                const inventory = await lcu.get(path);
+                if (inventory.status === 200 && Array.isArray(inventory.content)) {
+                    const owned = new Set(inventory.content.map((item: any) => +item.itemId));
+                    setWardSkins(catalog.content.filter((w: any) => owned.has(w.id)));
+                    return;
+                }
+            }
+        })();
+    }, []);
+
     const select = async (skinId: number) => {
         await lcu.patch("/lol-champ-select/v1/session/my-selection", { selectedSkinId: skinId });
     };
 
-    if (!champion) return null;
+    const selectWard = async (wardSkinId: number) => {
+        await lcu.patch("/lol-champ-select/v1/session/my-selection", { wardSkinId });
+    };
 
     return (
         <div className="overlay fade-in skin-picker">
-            <h2 className="screen-title">{t("skins.title", { champion: champion.name })}</h2>
+            <h2 className="screen-title">
+                {champion ? t("skins.title", { champion: champion.name }) : t("skins.wards")}
+            </h2>
 
             <div className="skin-picker-list">
-                {skins.map(skin => {
+                {champion && skins.map(skin => {
                     const skinIndex = skin.id - localPlayer.championId * 1000;
                     const chromas = (skin.childSkins ?? []).filter((c: any) => c.ownership?.owned);
                     const isSelected =
@@ -68,7 +96,24 @@ export default function SkinPicker(props: { onClose: () => void }) {
                         </div>
                     );
                 })}
-                {skins.length === 0 && <p className="create-lobby-loading">{t("skins.loading")}</p>}
+                {champion && skins.length === 0 && <p className="create-lobby-loading">{t("skins.loading")}</p>}
+
+                {wardSkins.length > 0 && (
+                    <>
+                        <h3 className="rune-section-title">{t("skins.wards")}</h3>
+                        <div className="ward-skin-grid">
+                            {wardSkins.map(ward => (
+                                <button
+                                    key={ward.id}
+                                    className={"champion-cell" + (localPlayer.wardSkinId === ward.id ? " selected" : "")}
+                                    onClick={() => selectWard(ward.id)}>
+                                    <img src={wardImageUrl(ward.wardImagePath)} alt={ward.name} loading="lazy" />
+                                    <span>{ward.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
 
             <div className="champion-picker-actions">

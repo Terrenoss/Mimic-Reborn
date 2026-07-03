@@ -111,6 +111,7 @@ export const fr: Messages = {
     "spells.none": "Aucun",
     "skins.title": "Skins de {champion}",
     "skins.loading": "Chargement des skins...",
+    "skins.wards": "Skins de balise",
     "runes.title": "Runes",
     "runes.loading": "Chargement des runes...",
     "runes.noPage": "Aucune page de runes modifiable — création en cours...",

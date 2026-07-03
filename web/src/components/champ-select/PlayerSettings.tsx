@@ -11,7 +11,6 @@ export default function PlayerSettings() {
     const spell1 = summonerSpells[localPlayer.spell1Id];
     const spell2 = summonerSpells[localPlayer.spell2Id];
     const canReroll = session.benchEnabled && rerollPoints && rerollPoints.numberOfRolls > 0;
-    const hasChampion = !!localPlayer.championId;
 
     return (
         <div className="cs-settings">
@@ -25,7 +24,7 @@ export default function PlayerSettings() {
                 <span>{t("cs.runes")}</span>
             </button>
 
-            <button className="cs-settings-button" disabled={!hasChampion} onClick={() => openOverlay("skins")}>
+            <button className="cs-settings-button" onClick={() => openOverlay("skins")}>
                 <span>{t("cs.skins")}</span>
             </button>
 

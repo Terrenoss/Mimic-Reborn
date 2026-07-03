@@ -20,8 +20,17 @@ function MemberCard({ member, isEnemy, trade }: { member: any; isEnemy: boolean;
     const spell2 = summonerSpells[member.spell2Id];
 
     const handleTap = () => {
-        if (!isLocal || !activeAction) return;
-        openOverlay(activeAction.type === "ban" ? "ban" : "pick", activeAction.id);
+        if (!isLocal) return;
+        if (activeAction) {
+            openOverlay(activeAction.type === "ban" ? "ban" : "pick", activeAction.id);
+            return;
+        }
+        // During PLANNING no action is "in progress" yet, but tapping our card
+        // should still open the picker to declare a pick intent.
+        if (session.timer?.phase === "PLANNING") {
+            const pickAction = actionsForCell(session, member.cellId).find((a: any) => a.type === "pick" && !a.completed);
+            if (pickAction) openOverlay("pick", pickAction.id);
+        }
     };
 
     return (

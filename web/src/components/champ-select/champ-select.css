@@ -480,6 +480,16 @@
     border-color: var(--gold);
 }
 
+.ward-skin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 8px;
+}
+
+.ward-skin-grid .champion-cell img {
+    object-fit: contain;
+}
+
 /* Runes */
 .rune-editor-body {
     flex: 1;

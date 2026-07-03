@@ -21,7 +21,11 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
     const t = useT();
 
     const isBan = props.mode === "ban";
-    const availableIds = (isBan ? bannable : pickable) ?? [];
+    // The LCU sometimes reports an empty bannable/pickable list until the
+    // action actually starts; fall back to the full roster so the grid is
+    // never blank (illegal choices are simply rejected by the LCU).
+    const reported = (isBan ? bannable : pickable) ?? [];
+    const availableIds = reported.length > 0 ? reported : Object.keys(champions).map(Number);
 
     const positionsFor = (championId: number): string[] => {
         const entry = positions?.[championId];
@@ -57,6 +61,8 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
     const action = props.actionId != null
         ? (session.actions ?? []).flat().find((a: any) => a.id === props.actionId)
         : actionsForCell(session, localPlayerCellId).find((a: any) => a.isInProgress && !a.completed);
+    // During PLANNING we can hover (declare intent) but not lock in yet.
+    const canComplete = !!action?.isInProgress;
 
     const hover = async (championId: number) => {
         setSelected(championId);
@@ -125,7 +131,10 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
             </div>
 
             <div className="champion-picker-actions">
-                <button className={"lcu-button " + (isBan ? "deny" : "confirm")} disabled={selected == null} onClick={lockIn}>
+                <button
+                    className={"lcu-button " + (isBan ? "deny" : "confirm")}
+                    disabled={selected == null || !canComplete}
+                    onClick={lockIn}>
                     {isBan ? t("picker.ban") : t("picker.lockIn")}
                 </button>
                 <button className="lcu-button" onClick={props.onClose}>
