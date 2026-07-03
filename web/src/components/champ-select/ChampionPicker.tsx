@@ -47,7 +47,7 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
 
     const list = useMemo(() => {
         const query = search.trim().toLowerCase();
-        return availableIds
+        const build = (ids: number[]) => ids
             .map(id => ({ id, data: champions[id] }))
             .filter(({ id, data }) => data && !takenIds.has(id))
             .filter(({ data }) => !query || data.name.toLowerCase().includes(query))
@@ -60,6 +60,14 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
                 const favDiff = +favorites.has(b.id) - +favorites.has(a.id);
                 return favDiff !== 0 ? favDiff : a.data.name.localeCompare(b.data.name);
             });
+
+        const result = build(availableIds);
+        // Safety net: whatever the LCU reported, the unfiltered view must
+        // never end up empty — fall back to the full roster.
+        if (result.length === 0 && !query && roleFilter === "ALL") {
+            return build(Object.keys(champions).map(Number));
+        }
+        return result;
     }, [availableIds, champions, search, takenIds, roleFilter, favorites, positions]);
 
     const action = props.actionId != null

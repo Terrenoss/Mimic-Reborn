@@ -48,7 +48,13 @@ export default function SkinPicker(props: { onClose: () => void }) {
         await lcu.patch("/lol-champ-select/v1/session/my-selection", { selectedSkinId: skinId });
     };
 
+    // The champ select payload doesn't always echo wardSkinId back, so track
+    // the choice locally for immediate visual feedback.
+    const [pickedWard, setPickedWard] = useState<number | null>(null);
+    const currentWard = pickedWard ?? localPlayer.wardSkinId;
+
     const selectWard = async (wardSkinId: number) => {
+        setPickedWard(wardSkinId);
         await lcu.patch("/lol-champ-select/v1/session/my-selection", { wardSkinId });
     };
 
@@ -101,7 +107,7 @@ export default function SkinPicker(props: { onClose: () => void }) {
                             {wardSkins.map(ward => (
                                 <button
                                     key={ward.id}
-                                    className={"champion-cell" + (localPlayer.wardSkinId === ward.id ? " selected" : "")}
+                                    className={"champion-cell" + (currentWard === ward.id ? " selected" : "")}
                                     onClick={() => selectWard(ward.id)}>
                                     <img src={wardImageUrl(ward.wardImagePath)} alt={ward.name} loading="lazy" />
                                     <span>{ward.name}</span>

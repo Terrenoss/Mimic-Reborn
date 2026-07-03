@@ -21,16 +21,17 @@ function MemberCard({ member, isEnemy, trade }: { member: any; isEnemy: boolean;
 
     const handleTap = () => {
         if (!isLocal) return;
-        if (activeAction) {
-            openOverlay(activeAction.type === "ban" ? "ban" : "pick", activeAction.id);
-            return;
-        }
-        // During PLANNING no action is "in progress" yet, but tapping our card
-        // should still open the picker to declare a pick intent.
+        // During PLANNING the LCU may already flag the ban action as "in
+        // progress", but the only meaningful move is declaring a pick intent —
+        // banning opens (and fails) otherwise.
         if (session.timer?.phase === "PLANNING") {
             const pickAction = actionsForCell(session, member.cellId).find((a: any) => a.type === "pick" && !a.completed);
-            if (pickAction) openOverlay("pick", pickAction.id);
+            if (pickAction) {
+                openOverlay("pick", pickAction.id);
+                return;
+            }
         }
+        if (activeAction) openOverlay(activeAction.type === "ban" ? "ban" : "pick", activeAction.id);
     };
 
     return (
