@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
 import { championSquareUrl } from "../../lib/static-data";
 import { useT } from "../../lib/i18n";
 import { loadFavorites, toggleFavorite } from "../../lib/favorites";
+import { getRecommendedPositions } from "../../lib/lcu-static";
 import { roleImage } from "../lobby/roles";
 import { actionsForCell, useChampSelect } from "./ChampSelect";
 
@@ -13,7 +14,10 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
     const pickable = useLcuObserve<number[]>("/lol-champ-select/v1/pickable-champion-ids");
     const bannable = useLcuObserve<number[]>("/lol-champ-select/v1/bannable-champion-ids");
     // The client's own champion/position mapping, used for its rune suggestions.
-    const positions = useLcuObserve<any>("/lol-perks/v1/recommended-champion-positions");
+    const [positions, setPositions] = useState<any>(null);
+    useEffect(() => {
+        getRecommendedPositions().then(setPositions);
+    }, []);
     const [search, setSearch] = useState("");
     const [roleFilter, setRoleFilter] = useState<string>("ALL");
     const [favorites, setFavorites] = useState<Set<number>>(loadFavorites);

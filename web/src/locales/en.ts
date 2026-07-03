@@ -11,6 +11,7 @@ export const en = {
     "connect.lost.title": "Connection lost",
     "connect.lost.text": "The connection to your computer was lost. Reconnecting...",
     "connect.retry": "Retry",
+    "connect.reconnecting": "Reconnecting...",
     "connect.scanQr": "📷 Scan the QR code",
     "connect.discover": "🔍 Find my PC",
     "connect.discover.searching": "Looking for your PC on the network...",

@@ -124,3 +124,19 @@ button {
         opacity: 1;
     }
 }
+
+.reconnect-banner {
+    position: fixed;
+    top: env(safe-area-inset-top, 0);
+    left: 0;
+    right: 0;
+    z-index: 200;
+    text-align: center;
+    padding: 4px;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+    background: rgba(1, 10, 19, 0.85);
+    border-bottom: 1px solid var(--gold-dark);
+}

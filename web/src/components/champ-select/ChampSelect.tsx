@@ -38,7 +38,19 @@ export function actionsForCell(session: any, cellId: number): any[] {
 }
 
 export default function ChampSelect() {
-    const session = useLcuObserve<any>("/lol-champ-select/v1/session");
+    const liveSession = useLcuObserve<any>("/lol-champ-select/v1/session");
+    // The LCU occasionally emits transient delete/404 events mid-select;
+    // dropping the whole screen (and any open overlay) for those is jarring,
+    // so only consider the session gone when it stays gone.
+    const [session, setSession] = useState<any>(null);
+    useEffect(() => {
+        if (liveSession) {
+            setSession(liveSession);
+            return;
+        }
+        const timer = setTimeout(() => setSession(null), 2500);
+        return () => clearTimeout(timer);
+    }, [liveSession]);
     const [ddragonVersion, setDdragonVersion] = useState<string>("");
     const [champions, setChampions] = useState<Record<number, any>>({});
     const [summonerSpells, setSummonerSpells] = useState<Record<number, any>>({});

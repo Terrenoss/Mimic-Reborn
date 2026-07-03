@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { lcu } from "../../lib/lcu";
 import { splashUrl } from "../../lib/static-data";
 import { useT } from "../../lib/i18n";
+import { getOwnedWardSkinIds, getWardSkinCatalog } from "../../lib/lcu-static";
 import { useChampSelect } from "./ChampSelect";
 
 /** CommunityDragon mirror of an LCU asset path like /lol-game-data/assets/... */
@@ -32,19 +33,14 @@ export default function SkinPicker(props: { onClose: () => void }) {
     }, [localPlayer.championId]);
 
     // Owned ward skins: catalog from the LCU's static data, ownership from the
-    // inventory service (endpoint moved across client versions, so try both).
+    // inventory service. If ownership can't be read, show the full catalog —
+    // the LCU rejects unowned picks, which beats hiding the feature entirely.
     useEffect(() => {
         (async () => {
-            const catalog = await lcu.get("/lol-game-data/assets/v1/ward-skins.json");
-            if (catalog.status !== 200 || !Array.isArray(catalog.content)) return;
-            for (const path of ["/lol-inventory/v2/inventory/WARD_SKIN", "/lol-inventory/v1/inventory/WARD_SKIN"]) {
-                const inventory = await lcu.get(path);
-                if (inventory.status === 200 && Array.isArray(inventory.content)) {
-                    const owned = new Set(inventory.content.map((item: any) => +item.itemId));
-                    setWardSkins(catalog.content.filter((w: any) => owned.has(w.id)));
-                    return;
-                }
-            }
+            const catalog = await getWardSkinCatalog();
+            if (catalog.length === 0) return;
+            const owned = await getOwnedWardSkinIds();
+            setWardSkins(owned ? catalog.filter((w: any) => owned.has(+w.id)) : catalog);
         })();
     }, []);
 

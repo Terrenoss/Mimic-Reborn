@@ -13,6 +13,7 @@ export const fr: Messages = {
     "connect.lost.title": "Connexion perdue",
     "connect.lost.text": "La connexion avec ton ordinateur a été perdue. Reconnexion...",
     "connect.retry": "Réessayer",
+    "connect.reconnecting": "Reconnexion...",
     "connect.scanQr": "📷 Scanner le QR code",
     "connect.discover": "🔍 Trouver mon PC",
     "connect.discover.searching": "Recherche de ton PC sur le réseau...",
