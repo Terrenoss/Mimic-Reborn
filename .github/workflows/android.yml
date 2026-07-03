@@ -5,10 +5,11 @@ name: Android APK
 # Note: this produces a debug-signed APK (installable on any phone with
 # "unknown sources" enabled). For Play Store / F-Droid distribution, add a
 # release keystore as repository secrets and a signing step.
+# No paths filter: it can prevent tag pushes from triggering, and the APK
+# must always be attached to tagged releases.
 on:
   push:
     branches: [master]
-    paths: ["web/**", ".github/workflows/android.yml"]
     tags: ["v*"]
   workflow_dispatch:
 

@@ -45,5 +45,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: Mimic Reborn ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
           files: publish/MimicConduit.exe
           generate_release_notes: true
