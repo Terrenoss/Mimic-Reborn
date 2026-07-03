@@ -15,11 +15,18 @@ export default function RolePicker(props: {
 
     const pick = (role: string) => {
         if (picking === "first") {
+            // Picking a role already used as secondary swaps the two.
+            if (role === second) setSecond(first);
             setFirst(role);
             if (role === "FILL") setSecond("UNSELECTED");
             setPicking("second");
         } else {
-            if (role !== first) setSecond(role);
+            // Picking the primary role as secondary swaps the two.
+            if (role === first) {
+                if (second === "UNSELECTED" || second === "FILL") return;
+                setFirst(second);
+            }
+            setSecond(role);
         }
     };
 

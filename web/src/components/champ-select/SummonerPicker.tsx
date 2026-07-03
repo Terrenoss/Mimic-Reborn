@@ -26,9 +26,13 @@ export default function SummonerPicker(props: { onClose: () => void }) {
     }, []);
 
     const select = async (spellId: number) => {
-        const spell1Id = replacing === 1 ? spellId : localPlayer.spell1Id;
-        const spell2Id = replacing === 2 ? spellId : localPlayer.spell2Id;
-        if (spell1Id === spell2Id) return;
+        let spell1Id = replacing === 1 ? spellId : localPlayer.spell1Id;
+        let spell2Id = replacing === 2 ? spellId : localPlayer.spell2Id;
+        // Picking the spell already in the other slot swaps the two.
+        if (spell1Id === spell2Id) {
+            spell1Id = localPlayer.spell2Id;
+            spell2Id = localPlayer.spell1Id;
+        }
         await lcu.patch("/lol-champ-select/v1/session/my-selection", { spell1Id, spell2Id });
         setReplacing(r => (r === 1 ? 2 : 1));
     };

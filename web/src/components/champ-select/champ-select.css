@@ -141,6 +141,43 @@
     border: 1px solid var(--gold-dark);
 }
 
+.cs-trade-button {
+    position: relative;
+    background: var(--blue-panel);
+    border: 1px solid var(--gold-dark);
+    color: var(--gold-bright);
+    font-size: 1.1rem;
+    padding: 6px 12px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.cs-trade-button.pending {
+    color: var(--text);
+    opacity: 0.7;
+}
+
+.cs-trade-request {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--gold);
+    background: var(--blue-panel);
+    font-size: 0.85rem;
+    color: var(--text-bright);
+}
+
+.cs-trade-request-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.cs-trade-request-actions .lcu-button {
+    flex: 1;
+    padding: 8px;
+}
+
 .cs-members-divider {
     text-align: center;
     font-size: 0.7rem;
@@ -239,6 +276,63 @@
     outline: none;
 }
 
+.champion-picker-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    overflow-x: auto;
+}
+
+.picker-tab {
+    flex: 1;
+    min-width: 40px;
+    background: var(--blue-panel);
+    border: 1px solid var(--gold-dark);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.picker-tab img {
+    width: 20px;
+    height: 20px;
+}
+
+.picker-tab.active {
+    border-color: var(--gold);
+    color: var(--gold-bright);
+}
+
+.champion-cell-wrap {
+    position: relative;
+}
+
+.champion-cell-wrap .champion-cell {
+    width: 100%;
+}
+
+.champion-cell-fav {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: rgba(1, 10, 19, 0.75);
+    border: none;
+    color: var(--text);
+    opacity: 0.45;
+    font-size: 0.9rem;
+    padding: 2px 6px;
+    cursor: pointer;
+}
+
+.champion-cell-fav.active {
+    color: var(--gold-bright);
+    opacity: 1;
+}
+
 .champion-picker-grid,
 .summoner-picker-grid {
     flex: 1;
@@ -323,9 +417,17 @@
 }
 
 .skin-card {
-    position: relative;
     background: none;
     border: 1px solid var(--gold-dark);
+    padding: 0;
+}
+
+.skin-card-main {
+    position: relative;
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
     padding: 0;
     cursor: pointer;
 }
@@ -335,6 +437,32 @@
     height: 130px;
     object-fit: cover;
     display: block;
+}
+
+.skin-chromas {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(1, 10, 19, 0.8);
+    overflow-x: auto;
+}
+
+.skin-chroma {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--gold-dark);
+    flex-shrink: 0;
+    cursor: pointer;
+    padding: 0;
+}
+
+.skin-chroma.base {
+    background: var(--blue-panel);
+}
+
+.skin-chroma.selected {
+    border-color: var(--gold-bright);
 }
 
 .skin-card span {
@@ -362,12 +490,24 @@
     margin-top: 10px;
 }
 
+.rune-page-row {
+    display: flex;
+    gap: 8px;
+}
+
 .rune-page-select {
     background: var(--blue-panel);
     border: 1px solid var(--gold-dark);
     color: var(--text-bright);
     padding: 10px;
     font-size: 0.95rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.rune-page-action {
+    flex: 0 0 auto;
+    padding: 10px 14px;
 }
 
 .rune-tree-choice {

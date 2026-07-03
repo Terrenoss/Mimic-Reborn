@@ -29,6 +29,51 @@ export async function notify(title: string, body: string) {
     }
 }
 
+/**
+ * Opens the system QR scanner (Google code scanner — no camera permission
+ * needed) and returns the scanned text, or null if cancelled/unavailable.
+ */
+export async function scanQrCode(): Promise<string | null> {
+    if (!isNative) return null;
+    const { BarcodeScanner, BarcodeFormat } = await import("@capacitor-mlkit/barcode-scanning");
+    try {
+        // The scanner ships as an on-demand Play Services module; make sure
+        // it is present the first time (no-op afterwards).
+        const { available } = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
+        if (!available) await BarcodeScanner.installGoogleBarcodeScannerModule();
+    } catch {
+        // No Play Services or check failed — scan() below will surface it.
+    }
+    try {
+        const { barcodes } = await BarcodeScanner.scan({ formats: [BarcodeFormat.QrCode] });
+        return barcodes[0]?.rawValue ?? null;
+    } catch {
+        return null;
+    }
+}
+
+// Screen wake lock: while Mimic is connected the phone should not go to sleep
+// mid-queue or mid-champ-select. Uses the standard Wake Lock API (Android
+// WebView and modern mobile browsers); silently unsupported elsewhere.
+let wakeLock: any = null;
+
+export async function keepAwake(on: boolean) {
+    try {
+        if (on && !wakeLock && "wakeLock" in navigator) {
+            wakeLock = await (navigator as any).wakeLock.request("screen");
+            wakeLock.addEventListener?.("release", () => {
+                wakeLock = null;
+            });
+        } else if (!on && wakeLock) {
+            const lock = wakeLock;
+            wakeLock = null;
+            await lock.release();
+        }
+    } catch {
+        // Unsupported or denied (e.g. low battery mode) — not critical.
+    }
+}
+
 /** On native builds there is no meaningful window.location.host; the PC address is stored. */
 export function getStoredHost(): string | null {
     return localStorage.getItem("conduitHost");

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { lcu } from "../../lib/lcu";
 import { POSITION_NAMES, profileIconUrl } from "../../lib/static-data";
 import { useT } from "../../lib/i18n";
+import { useMemberNames } from "../../lib/summoner-names";
 import { roleImage } from "./roles";
 
 export default function LobbyMember(props: {
@@ -13,6 +14,7 @@ export default function LobbyMember(props: {
 }) {
     const { member, isLocal, localIsLeader, showPositions } = props;
     const t = useT();
+    const name = useMemberNames([member]);
     const [icon, setIcon] = useState<string | null>(null);
     const [showActions, setShowActions] = useState(false);
 
@@ -37,7 +39,7 @@ export default function LobbyMember(props: {
 
             <div className="member-info">
                 <span className="member-name">
-                    {member.summonerName || member.gameName || "Summoner"}
+                    {name(member) || "…"}
                     {member.isLeader && <span className="member-badge">★</span>}
                 </span>
                 {showPositions && (

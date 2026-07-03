@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NO_BAN_ICON, championSquareUrl } from "../../lib/static-data";
 import { t } from "../../lib/i18n";
+import { memberName } from "../../lib/summoner-names";
 import { memberByCell, useChampSelect } from "./ChampSelect";
 
 function phaseLabel(session: any): string {
@@ -17,7 +18,7 @@ function phaseLabel(session: any): string {
     if (action.actorCellId === session.localPlayerCellId) {
         return isBan ? t("cs.youBanning") : t("cs.youPicking");
     }
-    const name = member?.summonerName || member?.gameName || "?";
+    const name = memberName(member) || "?";
     return isBan ? t("cs.otherBanning", { name }) : t("cs.otherPicking", { name });
 }
 

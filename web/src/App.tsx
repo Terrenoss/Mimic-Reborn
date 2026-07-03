@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { ConnectionState } from "./lib/socket";
 import { useConnection } from "./lib/store";
+import { keepAwake } from "./lib/native";
 import ConnectScreen from "./components/connect/ConnectScreen";
 import Lobby from "./components/lobby/Lobby";
 import Invites from "./components/invites/Invites";
@@ -16,6 +17,25 @@ export default function App() {
     useEffect(() => {
         connect();
     }, []);
+
+    // Keep the screen on while connected — losing the screen mid-queue means
+    // missing the ready check. The lock is dropped by the OS when the app is
+    // backgrounded, so re-acquire it whenever we become visible again.
+    useEffect(() => {
+        if (state !== ConnectionState.CONNECTED) {
+            keepAwake(false);
+            return;
+        }
+        keepAwake(true);
+        const onVisible = () => {
+            if (document.visibilityState === "visible") keepAwake(true);
+        };
+        document.addEventListener("visibilitychange", onVisible);
+        return () => {
+            document.removeEventListener("visibilitychange", onVisible);
+            keepAwake(false);
+        };
+    }, [state]);
 
     if (state !== ConnectionState.CONNECTED) {
         return <ConnectScreen />;

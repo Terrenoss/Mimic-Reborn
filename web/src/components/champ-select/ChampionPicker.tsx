@@ -2,18 +2,33 @@ import { useMemo, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
 import { championSquareUrl } from "../../lib/static-data";
 import { useT } from "../../lib/i18n";
+import { loadFavorites, toggleFavorite } from "../../lib/favorites";
+import { roleImage } from "../lobby/roles";
 import { actionsForCell, useChampSelect } from "./ChampSelect";
+
+const ROLE_TABS = ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"];
 
 export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?: number; onClose: () => void }) {
     const { session, champions, ddragonVersion, localPlayerCellId } = useChampSelect();
     const pickable = useLcuObserve<number[]>("/lol-champ-select/v1/pickable-champion-ids");
     const bannable = useLcuObserve<number[]>("/lol-champ-select/v1/bannable-champion-ids");
+    // The client's own champion/position mapping, used for its rune suggestions.
+    const positions = useLcuObserve<any>("/lol-perks/v1/recommended-champion-positions");
     const [search, setSearch] = useState("");
+    const [roleFilter, setRoleFilter] = useState<string>("ALL");
+    const [favorites, setFavorites] = useState<Set<number>>(loadFavorites);
     const [selected, setSelected] = useState<number | null>(null);
     const t = useT();
 
     const isBan = props.mode === "ban";
     const availableIds = (isBan ? bannable : pickable) ?? [];
+
+    const positionsFor = (championId: number): string[] => {
+        const entry = positions?.[championId];
+        const list = Array.isArray(entry) ? entry : entry?.recommendedPositions;
+        return Array.isArray(list) ? list.map((p: string) => p.toUpperCase()) : [];
+    };
+    const hasPositionData = positions != null && Object.keys(positions).length > 0;
 
     // Champions already picked/banned can't be chosen again.
     const takenIds = useMemo(() => {
@@ -28,8 +43,16 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
             .map(id => ({ id, data: champions[id] }))
             .filter(({ id, data }) => data && !takenIds.has(id))
             .filter(({ data }) => !query || data.name.toLowerCase().includes(query))
-            .sort((a, b) => a.data.name.localeCompare(b.data.name));
-    }, [availableIds, champions, search, takenIds]);
+            .filter(({ id }) => {
+                if (roleFilter === "ALL") return true;
+                if (roleFilter === "FAV") return favorites.has(id);
+                return positionsFor(id).includes(roleFilter);
+            })
+            .sort((a, b) => {
+                const favDiff = +favorites.has(b.id) - +favorites.has(a.id);
+                return favDiff !== 0 ? favDiff : a.data.name.localeCompare(b.data.name);
+            });
+    }, [availableIds, champions, search, takenIds, roleFilter, favorites, positions]);
 
     const action = props.actionId != null
         ? (session.actions ?? []).flat().find((a: any) => a.id === props.actionId)
@@ -59,15 +82,45 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
                 onChange={e => setSearch(e.target.value)}
             />
 
+            <div className="champion-picker-tabs">
+                <button
+                    className={"picker-tab" + (roleFilter === "ALL" ? " active" : "")}
+                    onClick={() => setRoleFilter("ALL")}>
+                    {t("picker.all")}
+                </button>
+                <button
+                    className={"picker-tab" + (roleFilter === "FAV" ? " active" : "")}
+                    onClick={() => setRoleFilter("FAV")}>
+                    ★
+                </button>
+                {hasPositionData && ROLE_TABS.map(role => (
+                    <button
+                        key={role}
+                        className={"picker-tab" + (roleFilter === role ? " active" : "")}
+                        onClick={() => setRoleFilter(role)}>
+                        <img src={roleImage(role)} alt={role} />
+                    </button>
+                ))}
+            </div>
+
             <div className="champion-picker-grid">
                 {list.map(({ id, data }) => (
-                    <button
-                        key={id}
-                        className={"champion-cell" + (selected === id ? " selected" : "")}
-                        onClick={() => hover(id)}>
-                        <img src={championSquareUrl(ddragonVersion, data.id)} alt={data.name} loading="lazy" />
-                        <span>{data.name}</span>
-                    </button>
+                    <div key={id} className="champion-cell-wrap">
+                        <button
+                            className={"champion-cell" + (selected === id ? " selected" : "")}
+                            onClick={() => hover(id)}>
+                            <img src={championSquareUrl(ddragonVersion, data.id)} alt={data.name} loading="lazy" />
+                            <span>{data.name}</span>
+                        </button>
+                        <button
+                            className={"champion-cell-fav" + (favorites.has(id) ? " active" : "")}
+                            onClick={e => {
+                                e.stopPropagation();
+                                setFavorites(f => toggleFavorite(f, id));
+                            }}>
+                            ★
+                        </button>
+                    </div>
                 ))}
             </div>
 

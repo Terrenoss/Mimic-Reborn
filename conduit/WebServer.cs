@@ -45,14 +45,20 @@ public class WebServer
             app.UseStaticFiles(new StaticFileOptions { FileProvider = fileProvider });
         }
 
-        app.MapGet("/api/info", () => Results.Json(new
+        // CORS so the native app (served from its own localhost origin) can
+        // probe this endpoint while auto-discovering the PC on the LAN.
+        app.MapGet("/api/info", (HttpContext context) =>
         {
-            name = MimicConfig.AppName,
-            version = MimicConfig.Version,
-            machine = Environment.MachineName,
-            leagueConnected = _league.IsConnected,
-            lanUrl = GetLanUrl()
-        }));
+            context.Response.Headers.AccessControlAllowOrigin = "*";
+            return Results.Json(new
+            {
+                name = MimicConfig.AppName,
+                version = MimicConfig.Version,
+                machine = Environment.MachineName,
+                leagueConnected = _league.IsConnected,
+                lanUrl = GetLanUrl()
+            });
+        });
 
         app.Map("/mobile", async context =>
         {

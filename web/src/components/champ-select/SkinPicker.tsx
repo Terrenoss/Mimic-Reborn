@@ -37,14 +37,35 @@ export default function SkinPicker(props: { onClose: () => void }) {
             <div className="skin-picker-list">
                 {skins.map(skin => {
                     const skinIndex = skin.id - localPlayer.championId * 1000;
+                    const chromas = (skin.childSkins ?? []).filter((c: any) => c.ownership?.owned);
+                    const isSelected =
+                        localPlayer.selectedSkinId === skin.id ||
+                        chromas.some((c: any) => c.id === localPlayer.selectedSkinId);
                     return (
-                        <button
-                            key={skin.id}
-                            className={"skin-card" + (localPlayer.selectedSkinId === skin.id ? " selected" : "")}
-                            onClick={() => select(skin.id)}>
-                            <img src={splashUrl(champion.id, skinIndex)} alt="" loading="lazy" />
-                            <span>{skin.isBase ? champion.name : skin.name}</span>
-                        </button>
+                        <div key={skin.id} className={"skin-card" + (isSelected ? " selected" : "")}>
+                            <button className="skin-card-main" onClick={() => select(skin.id)}>
+                                <img src={splashUrl(champion.id, skinIndex)} alt="" loading="lazy" />
+                                <span>{skin.isBase ? champion.name : skin.name}</span>
+                            </button>
+                            {chromas.length > 0 && (
+                                <div className="skin-chromas">
+                                    <button
+                                        className={"skin-chroma base" + (localPlayer.selectedSkinId === skin.id ? " selected" : "")}
+                                        onClick={() => select(skin.id)}
+                                    />
+                                    {chromas.map((chroma: any) => (
+                                        <button
+                                            key={chroma.id}
+                                            className={"skin-chroma" + (localPlayer.selectedSkinId === chroma.id ? " selected" : "")}
+                                            style={{ background: chroma.colors?.length > 1
+                                                ? `linear-gradient(135deg, ${chroma.colors[0]} 50%, ${chroma.colors[1]} 50%)`
+                                                : chroma.colors?.[0] ?? "#888" }}
+                                            onClick={() => select(chroma.id)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     );
                 })}
                 {skins.length === 0 && <p className="create-lobby-loading">{t("skins.loading")}</p>}

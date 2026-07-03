@@ -56,6 +56,14 @@ export default function ChampSelect() {
         if (!session) setOverlay("none");
     }, [session == null]);
 
+    // Buzz when it becomes our turn to pick or ban — easy to miss on a phone.
+    const myTurn = !!session && (session.actions ?? [])
+        .flat()
+        .some((a: any) => a.actorCellId === session.localPlayerCellId && a.isInProgress && !a.completed);
+    useEffect(() => {
+        if (myTurn) navigator.vibrate?.([150, 80, 150]);
+    }, [myTurn]);
+
     if (!session || !ddragonVersion || !Object.keys(champions).length) return null;
 
     const localPlayer = (session.myTeam ?? []).find((m: any) => m.cellId === session.localPlayerCellId);

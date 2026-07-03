@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { lcu, useLcuObserve } from "../../lib/lcu";
 import { loadRuneTrees, runeIconUrl } from "../../lib/static-data";
 import { useT } from "../../lib/i18n";
@@ -25,14 +25,45 @@ export default function RuneEditor(props: { onClose: () => void }) {
     const { localPlayer } = useChampSelect();
     const pages = useLcuObserve<any[]>("/lol-perks/v1/pages");
     const currentPage = useLcuObserve<any>("/lol-perks/v1/currentpage");
+    const inventory = useLcuObserve<any>("/lol-perks/v1/inventory");
     const [trees, setTrees] = useState<any[]>([]);
     const [recommended, setRecommended] = useState<any[]>([]);
     const [appliedIndex, setAppliedIndex] = useState<number | null>(null);
+    const [creating, setCreating] = useState(false);
     const t = useT();
 
     useEffect(() => {
         loadRuneTrees().then(setTrees);
     }, []);
+
+    // A fresh (or reset) account can have zero editable pages, which used to
+    // dead-end the editor. Create a default page so runes stay editable.
+    const createPage = async () => {
+        if (trees.length < 2 || creating) return;
+        setCreating(true);
+        const [primary, secondary] = trees;
+        await lcu.post("/lol-perks/v1/pages", {
+            name: "Mimic",
+            primaryStyleId: primary.id,
+            subStyleId: secondary.id,
+            selectedPerkIds: [
+                ...primary.slots.map((slot: any) => slot.runes[0].id),
+                secondary.slots[1].runes[0].id,
+                secondary.slots[2].runes[0].id,
+                5008, 5008, 5001
+            ],
+            current: true
+        });
+        setCreating(false);
+    };
+
+    const autoCreated = useRef(false);
+    useEffect(() => {
+        if (!pages || trees.length < 2 || autoCreated.current) return;
+        if (pages.some(p => p.isEditable)) return;
+        autoCreated.current = true;
+        createPage();
+    }, [pages, trees]);
 
     // Riot's own recommended pages for this champion/position/map — straight
     // from the LCU, no third-party site needed.
@@ -130,14 +161,42 @@ export default function RuneEditor(props: { onClose: () => void }) {
                     </>
                 )}
 
-                <select
-                    className="rune-page-select"
-                    value={page.id}
-                    onChange={e => lcu.put("/lol-perks/v1/currentpage", +e.target.value)}>
-                    {editablePages.map(p => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                </select>
+                <div className="rune-page-row">
+                    <select
+                        className="rune-page-select"
+                        value={page.id}
+                        onChange={e => lcu.put("/lol-perks/v1/currentpage", +e.target.value)}>
+                        {editablePages.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                    </select>
+                    <button
+                        className="lcu-button rune-page-action"
+                        title={t("runes.rename")}
+                        onClick={() => {
+                            const name = window.prompt(t("runes.rename"), page.name);
+                            if (name?.trim()) savePage({ name: name.trim() });
+                        }}>
+                        ✎
+                    </button>
+                    {(inventory?.ownedPageCount ?? 2) > editablePages.length && (
+                        <button className="lcu-button rune-page-action" title={t("runes.newPage")} onClick={createPage}>
+                            +
+                        </button>
+                    )}
+                    {editablePages.length > 1 && (
+                        <button
+                            className="lcu-button deny rune-page-action"
+                            title={t("runes.deletePage")}
+                            onClick={() => {
+                                if (window.confirm(t("runes.deleteConfirm", { name: page.name }))) {
+                                    lcu.del(`/lol-perks/v1/pages/${page.id}`);
+                                }
+                            }}>
+                            🗑
+                        </button>
+                    )}
+                </div>
 
                 <div className="rune-tree-choice">
                     {trees.map(tree => (
