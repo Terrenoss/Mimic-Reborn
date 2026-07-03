@@ -75,15 +75,19 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
     // During PLANNING we can hover (declare intent) but not lock in yet.
     const canComplete = !!action?.isInProgress;
 
+    // A champion hovered before (this open or a previous one) is already on
+    // the action — reflect it so lock-in works without re-picking.
+    const effectiveSelected = selected ?? (action?.championId || null);
+
     const hover = async (championId: number) => {
         setSelected(championId);
         if (action) await lcu.patch(`/lol-champ-select/v1/session/actions/${action.id}`, { championId });
     };
 
     const lockIn = async () => {
-        if (!action || selected == null) return;
+        if (!action || effectiveSelected == null) return;
         await lcu.patch(`/lol-champ-select/v1/session/actions/${action.id}`, {
-            championId: selected,
+            championId: effectiveSelected,
             completed: true
         });
         props.onClose();
@@ -124,7 +128,7 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
                 {list.map(({ id, data }) => (
                     <div key={id} className="champion-cell-wrap">
                         <button
-                            className={"champion-cell" + (selected === id ? " selected" : "")}
+                            className={"champion-cell" + (effectiveSelected === id ? " selected" : "")}
                             onClick={() => hover(id)}>
                             <img src={championSquareUrl(ddragonVersion, data.id)} alt={data.name} loading="lazy" />
                             <span>{data.name}</span>
@@ -144,7 +148,7 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
             <div className="champion-picker-actions">
                 <button
                     className={"lcu-button " + (isBan ? "deny" : "confirm")}
-                    disabled={selected == null || !canComplete}
+                    disabled={effectiveSelected == null || !canComplete}
                     onClick={lockIn}>
                     {isBan ? t("picker.ban") : t("picker.lockIn")}
                 </button>
