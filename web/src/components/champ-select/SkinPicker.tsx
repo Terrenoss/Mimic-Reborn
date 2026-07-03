@@ -40,8 +40,33 @@ export default function SkinPicker(props: { onClose: () => void }) {
             const catalog = await getWardSkinCatalog();
             if (catalog.length === 0) return;
             const owned = await getOwnedWardSkinIds();
-            setWardSkins(owned ? catalog.filter((w: any) => owned.has(+w.id)) : catalog);
+            const list = owned ? catalog.filter((w: any) => owned.has(+w.id)) : [...catalog];
+            // The default ward (id 0) is always available but never listed as
+            // an owned item.
+            if (!list.some((w: any) => +w.id === 0)) {
+                const base = catalog.find((w: any) => +w.id === 0);
+                list.unshift(base ?? {
+                    id: 0,
+                    name: t("skins.wardDefault"),
+                    wardImagePath: "/lol-game-data/assets/ASSETS/Loadouts/WardSkins/WardSkin_0.png"
+                });
+            }
+            setWardSkins(list);
         })();
+    }, []);
+
+    // Ward skins are applied through the account loadout — the modern client
+    // ignores plain wardSkinId patches on the champ select selection.
+    const [loadout, setLoadout] = useState<any>(null);
+    useEffect(() => {
+        lcu.get("/lol-loadouts/v4/loadouts/scope/account").then(result => {
+            if (result.status === 200 && Array.isArray(result.content) && result.content.length > 0) {
+                const account = result.content[0];
+                setLoadout(account);
+                const current = account.loadout?.WARD_SKIN_SLOT?.itemId;
+                if (current != null) setPickedWard(prev => prev ?? +current);
+            }
+        });
     }, []);
 
     const select = async (skinId: number) => {
@@ -55,7 +80,14 @@ export default function SkinPicker(props: { onClose: () => void }) {
 
     const selectWard = async (wardSkinId: number) => {
         setPickedWard(wardSkinId);
-        await lcu.patch("/lol-champ-select/v1/session/my-selection", { wardSkinId });
+        // Belt and suspenders: legacy champ-select field + the account loadout
+        // slot the game actually reads.
+        lcu.patch("/lol-champ-select/v1/session/my-selection", { wardSkinId });
+        if (loadout?.id != null) {
+            await lcu.patch(`/lol-loadouts/v4/loadouts/${loadout.id}`, {
+                loadout: { WARD_SKIN_SLOT: { inventoryType: "WARD_SKIN", itemId: wardSkinId } }
+            });
+        }
     };
 
     return (

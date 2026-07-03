@@ -33,8 +33,8 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
 
     const positionsFor = (championId: number): string[] => {
         const entry = positions?.[championId];
-        const list = Array.isArray(entry) ? entry : entry?.recommendedPositions;
-        return Array.isArray(list) ? list.map((p: string) => p.toUpperCase()) : [];
+        const list = Array.isArray(entry) ? entry : entry?.recommendedPositions ?? entry?.positions;
+        return Array.isArray(list) ? list.map((p: string) => String(p).toUpperCase()) : [];
     };
     const hasPositionData = positions != null && Object.keys(positions).length > 0;
 
@@ -62,12 +62,11 @@ export default function ChampionPicker(props: { mode: "pick" | "ban"; actionId?:
             });
 
         const result = build(availableIds);
-        // Safety net: whatever the LCU reported, the unfiltered view must
-        // never end up empty — fall back to the full roster.
-        if (result.length === 0 && !query && roleFilter === "ALL") {
-            return build(Object.keys(champions).map(Number));
-        }
-        return result;
+        if (result.length > 0) return result;
+        // Safety net: when the reported list yields nothing (the LCU sends
+        // junk/empty lists around ban phases), search and filters must still
+        // work — run them over the full roster instead.
+        return build(Object.keys(champions).map(Number));
     }, [availableIds, champions, search, takenIds, roleFilter, favorites, positions]);
 
     const action = props.actionId != null
