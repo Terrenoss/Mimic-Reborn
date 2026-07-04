@@ -171,6 +171,8 @@ export default function ConnectScreen() {
                     </option>
                 ))}
             </select>
+
+            <span className="connect-version">v{__APP_VERSION__}</span>
         </div>
     );
 }

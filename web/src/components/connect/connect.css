@@ -107,3 +107,11 @@
     flex: 1;
     padding: 8px;
 }
+
+.connect-version {
+    position: absolute;
+    right: 12px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+    font-size: 0.65rem;
+    opacity: 0.45;
+}
